@@ -1,0 +1,8 @@
+__pycache__/
+lib/
+location_files/
+location_plots/
+postprocessed_obs/
+prepbufr_files/
+*.exe
+*.csv
