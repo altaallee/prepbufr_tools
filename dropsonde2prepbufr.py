@@ -11,12 +11,14 @@ from pathlib import Path
 import subprocess
 
 
-start_date = datetime(2022, 9, 1, 0)
-end_date = datetime(2022, 10, 1, 0)
+start_date = datetime(2022, 9, 4, 0)
+end_date = datetime(2022, 9, 28, 18)
 frequency = timedelta(hours=6)
 
-prepbufr_dir = lambda date: f"prepbufr_files/{date:%Y%m%d%H}/"
-prepbufr_filename = lambda date: f"dropsonde.t{date:%H}z.prepbufr.nr"
+prepbufr_dir = lambda date: f"../CPEX-CV/GDAS/{date:%Y%m%d}/"
+prepbufr_filename = lambda date: f"gdas_dropsonde.t{date:%H}z.prepbufr.nr"
+prepbufr_filename = lambda date: f"gdas_dawn_dropsonde_halo.t{date:%H}z.prepbufr.nr"
+
 dropsonde_dir = "../CPEX-CV/data_preliminary/dropsonde"
 dropsonde_prefix = "CPEXCV-dropsonde_DC8_*_RA.nc"
 
