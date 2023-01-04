@@ -20,7 +20,8 @@ program prepbufr_encode_upperair
    character(80)      :: obstr = 'POB QOB TOB ZOB UOB VOB PWO CAT PRSS'
    character(80)      :: qcstr = 'PQM QQM TQM ZQM WQM NUL PWQ     '
    character(80)      :: oestr = 'POE QOE TOE NUL WOE NUL PWE     '
-   real(8)            :: hdr(mxmn), obs(mxmn, mxlv), qcf(mxmn, mxlv), oer(mxmn, mxlv)
+   real(8)            :: hdr(mxmn), obs(mxmn, mxlv), qcf(mxmn, mxlv), &
+                         oer(mxmn, mxlv)
 
    character(8)       :: subset
    integer            :: unit_out = 10, unit_table = 20, idate, iret, nlvl = 0
@@ -29,7 +30,8 @@ program prepbufr_encode_upperair
    real(8)            :: rstation_id
    equivalence(rstation_id, c_sid)
 
-   character(200)     :: pb_filename, char_arg, ds_filename_mass, ds_filename_wind, csv_line
+   character(200)     :: pb_filename, char_arg, ds_filename_mass, &
+                         ds_filename_wind, csv_line
    integer            :: cycle_time, mass_len, wind_len
    real(8)            :: longitude, latitude, time
    logical            :: pb_exist
@@ -87,6 +89,7 @@ program prepbufr_encode_upperair
    hdr(2) = longitude; hdr(3) = latitude; hdr(4) = time; hdr(6) = 0.0
 
    hdr(5) = 132 ! report type: MASS Report - Flight-level reconnaissance and profile dropsonde
+   hdr(8) = 75.
    obs = 10.0e10; qcf = 10.0e10; oer = 10.0e10
 
    if (mass_len .gt. 0) then
@@ -96,6 +99,12 @@ program prepbufr_encode_upperair
          nlvl = nlvl + 1
          read (csv_line, *) obs(1, nlvl), obs(2, nlvl), obs(3, nlvl), &
             obs(4, nlvl)
+         obs(8, nlvl) = 4.0
+
+         qcf(1, nlvl) = 1.; qcf(2, nlvl) = 1.; qcf(3, nlvl) = 1.
+         qcf(4, nlvl) = 1.; qcf(5, nlvl) = 1.
+         oer(1, nlvl) = 1.; oer(2, nlvl) = 1.; oer(3, nlvl) = 1.
+         oer(5, nlvl) = 1.
       end do
 
       ! encode obs
@@ -116,7 +125,14 @@ program prepbufr_encode_upperair
       do while (iostat == 0)
          read (unit_ds, '(a)', iostat=iostat) csv_line
          nlvl = nlvl + 1
-         read (csv_line, *) obs(1, nlvl), obs(4, nlvl), obs(5, nlvl), obs(6, nlvl)
+         read (csv_line, *) obs(1, nlvl), obs(4, nlvl), obs(5, nlvl), &
+            obs(6, nlvl)
+         obs(8, nlvl) = 4.0
+
+         qcf(1, nlvl) = 1.; qcf(2, nlvl) = 1.; qcf(3, nlvl) = 1.
+         qcf(4, nlvl) = 1.; qcf(5, nlvl) = 1.
+         oer(1, nlvl) = 1.; oer(2, nlvl) = 1.; oer(3, nlvl) = 1.
+         oer(5, nlvl) = 1.
       end do
 
       ! encode obs
