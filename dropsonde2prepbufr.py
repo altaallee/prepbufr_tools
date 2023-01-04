@@ -12,12 +12,15 @@ import subprocess
 
 
 start_date = datetime(2022, 9, 4, 0)
-end_date = datetime(2022, 9, 28, 18)
+end_date = datetime(2022, 9, 30, 18)
 frequency = timedelta(hours=6)
 
-prepbufr_dir = lambda date: f"../CPEX-CV/GDAS/{date:%Y%m%d}/"
-prepbufr_filename = lambda date: f"gdas_dropsonde.t{date:%H}z.prepbufr.nr"
-prepbufr_filename = lambda date: f"gdas_dawn_dropsonde_halo.t{date:%H}z.prepbufr.nr"
+prepbufr_dir = lambda date: f"../CPEX-CV/GDAS3/{date:%Y%m%d}/"
+prepbufr_filenames = [
+    lambda date: f"gdas_dropsonde.t{date:%H}z.prepbufr.nr",
+    lambda date: f"gdas_dawn_dropsonde_halo.t{date:%H}z.prepbufr.nr",
+    lambda date: f"dropsonde.t{date:%H}z.prepbufr.nr",
+]
 
 dropsonde_dir = "../CPEX-CV/data_preliminary/dropsonde"
 dropsonde_prefix = "CPEXCV-dropsonde_DC8_*_RA.nc"
@@ -98,12 +101,14 @@ for date in pd.date_range(start_date, end_date, freq=frequency):
 
             if (len(POBmass) or len(POBwind)):
                 print(len(POBmass), len(POBwind))
-                print("adding data to", prepbufr_filename(date))
-                Path(prepbufr_dir(date)).mkdir(parents=True, exist_ok=True)
-                subprocess.run(
-                    ["./prepbufr_encode_upperair_dropsonde.exe",
-                    f"{prepbufr_dir(date)}/{prepbufr_filename(date)}",
-                    f"{date:%Y%m%d%H}", f"{lon + 360}",
-                    f"{lat}", f"{dt}", "dropsonde_processed_mass.csv",
-                    "dropsonde_processed_wind.csv", str(len(POBmass)),
-                    str(len(POBwind))])
+
+                for prepbufr_filename in prepbufr_filenames:
+                    print("adding data to", prepbufr_filename(date))
+                    Path(prepbufr_dir(date)).mkdir(parents=True, exist_ok=True)
+                    subprocess.run(
+                        ["./prepbufr_encode_upperair_dropsonde.exe",
+                        f"{prepbufr_dir(date)}/{prepbufr_filename(date)}",
+                        f"{date:%Y%m%d%H}", f"{lon + 360}",
+                        f"{lat}", f"{dt}", "dropsonde_processed_mass.csv",
+                        "dropsonde_processed_wind.csv", str(len(POBmass)),
+                        str(len(POBwind))])
