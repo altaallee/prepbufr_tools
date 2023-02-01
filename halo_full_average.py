@@ -1,30 +1,49 @@
+import argparse
+
+parser = argparse.ArgumentParser(description="Average HALO data.")
+parser.add_argument(
+    "--filename", required=True, type=str, help="Name of HALO file.")
+parser.add_argument(
+    "--directory", default="../CPEX-CV/data_semifinal/HALO/", type=str,
+    help="Directory of HALO file.")
+parser.add_argument(
+    "--output_dir", default="postprocessed_obs/CPEX-CV/HALO/", type=str,
+    help="Directory to output file.")
+parser.add_argument(
+    "--dx", default=12000, type=int,
+    help="Horizontal average distance in meters.")
+parser.add_argument(
+    "--trim_plot", default=False, type=bool,
+    help="Trim data to date range.")
+parser.add_argument(
+    "--trim_start", default="202209010000", type=str,
+    help="Start time to trim data. (YYYYMMDDhhmm)")
+parser.add_argument(
+    "--trim_end", default="202210010000", type=str,
+    help="End time to trim data. (YYYYMMDDhhmm)")
+
+args = parser.parse_args()
+
 import sys
 sys.path.insert(1, "../dev/plotters/")
+import subprocess
 from datetime import datetime
 from python_imports import extra
 from pathlib import Path
 
+subprocess.run(f"cp {args.directory}/{args.filename} /tmp", shell=True)
 
-halo_dir = "../CPEX-CV/data_preliminary/HALO/"
-halo_filename = ""
-halo_output_dir = "postprocessed_obs/CPEX-CV/HALO/"
-halo_average_dx = 12000
-
-trim_plot = False
-trim_start = datetime(2022, 9, 1)
-trim_end = datetime(2022, 10, 1)
-
-if trim_plot:
+if args.trim_plot:
+    trim_start = datetime.strptime(args.trim_start, "%Y%m%d%H%M")
+    trim_end = datetime.strptime(args.trim_end, "%Y%m%d%H%M")
     ds_halo = extra.get_halo_data(
-        filename=f"{halo_dir}/{halo_filename}", start=trim_start, end=trim_end,
-        preliminary=True)
+        filename=f"/tmp/{args.filename}", start=trim_start, end=trim_end, preliminary=True)
 else:
-    ds_halo = extra.get_halo_data(
-        filename=f"{halo_dir}/{halo_filename}", preliminary=True)
+    ds_halo = extra.get_halo_data(filename=f"/tmp/{args.filename}", preliminary=True)
 
 ds_halo_avg = extra.full_average_halo(
-    ds_halo, halo_average_dx, extra.vertical_levels(), ["h2o_mmr_v"])
+    ds_halo, args.dx, extra.vertical_levels(), ["h2o_mmr_v"])
 
-Path(halo_output_dir).mkdir(parents=True, exist_ok=True)
+Path(args.output_dir).mkdir(parents=True, exist_ok=True)
 ds_halo_avg.to_netcdf(
-    f"{halo_output_dir}/{halo_filename}_full_averaged_{halo_average_dx}{f'_{trim_start:%Y%m%d%H%M}_{trim_end:%Y%m%d%H%M}' if trim_plot else ''}.nc")
+    f"{args.output_dir}/{args.filename}_full_averaged_{args.dx}{f'_{trim_start:%Y%m%d%H%M}_{trim_end:%Y%m%d%H%M}' if args.trim_plot else ''}.nc")

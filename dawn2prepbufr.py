@@ -13,7 +13,7 @@ start_date = datetime(2022, 9, 4, 0)
 end_date = datetime(2022, 9, 30, 18)
 frequency = timedelta(hours=6)
 
-prepbufr_dir = lambda date: f"../CPEX-CV/GDAS3/{date:%Y%m%d}/"
+prepbufr_dir = lambda date: f"../CPEX-CV/GDAS/{date:%Y%m%d}/"
 prepbufr_filenames = [
     lambda date: f"gdas_dawn.t{date:%H}z.prepbufr.nr",
     lambda date: f"gdas_dawn_dropsonde_halo.t{date:%H}z.prepbufr.nr",
@@ -23,26 +23,24 @@ prepbufr_filenames = [
 
 dawn_dir = "postprocessed_obs/CPEX-CV/DAWN/"
 dawn_filenames = [
-    "cpexcv-DAWN_DC8_20220906_RA_RF01.nc_full_averaged_12000.nc",
-    "cpexcv-DAWN_DC8_20220907_RA_RF02.nc_full_averaged_12000.nc",
-    "cpexcv-DAWN_DC8_20220909_RA_RF03.nc_full_averaged_12000.nc",
-    "cpexcv-DAWN_DC8_20220910_RA_RF04.nc_full_averaged_12000.nc",
-    "cpexcv-DAWN_DC8_20220914_RA_RF05.nc_full_averaged_12000.nc",
-    "cpexcv-DAWN_DC8_20220915_RA_RF06.nc_full_averaged_12000.nc",
-    "cpexcv-DAWN_DC8_20220916_RA_RF07.nc_full_averaged_12000.nc",
-    "cpexcv-DAWN_DC8_20220920_RA_RF08.nc_full_averaged_12000.nc",
-    "cpexcv-DAWN_DC8_20220922_RA_RF09.nc_full_averaged_12000.nc",
-    "cpexcv-DAWN_DC8_20220923_RA_RF10.nc_full_averaged_12000.nc",
-    "cpexcv-DAWN_DC8_20220926_RA_RF11.nc_full_averaged_12000.nc",
-    "cpexcv-DAWN_DC8_20220929_RA_RF12.nc_full_averaged_12000.nc",
-    "cpexcv-DAWN_DC8_20220930_RA_RF13.nc_full_averaged_12000.nc"
 ]
 
 wrfinput_dir = "/nobackupp12/alee31/CPEX-CV/era5_wrfinput/"
 
+subprocess.run("cp prepbufr_encode_upperair_dawn.exe /tmp", shell=True)
+subprocess.run("cp -r lib /tmp", shell=True)
+
+for date in pd.date_range(start_date, end_date, freq=frequency):
+    subprocess.run(f"mkdir /tmp/prepbufr_{date:%Y%m%d}/", shell=True)
+    for prepbufr_filename in prepbufr_filenames:
+        subprocess.run(
+            f"cp {prepbufr_dir(date)}/{prepbufr_filename(date)} /tmp/prepbufr_{date:%Y%m%d}/",
+            shell=True)
+
 previous_time = None
 for dawn_filename in dawn_filenames:
-    ds = xr.load_dataset(f"{dawn_dir}/{dawn_filename}")
+    subprocess.run(f"cp {dawn_dir}/{dawn_filename} /tmp", shell=True)
+    ds = xr.load_dataset(f"/tmp/{dawn_filename}")
 
     for date in pd.date_range(start_date, end_date, freq=frequency):
         print("creating prepbufr for", date)
@@ -59,12 +57,20 @@ for dawn_filename in dawn_filenames:
             ds_point = ds_segment.sel({"number_profile_records": i})
             dt = (ds_point["datetime"].values - date).days * 24 + \
                 (ds_point["datetime"].values - date).seconds / 3600
-            print("found DAWN scan at", ds_point["datetime"].values, "dt =", dt)
+            print(
+                "found DAWN scan at", ds_point["datetime"].values, "dt =", dt)
 
             nearest_time = pd.Timestamp(ds_point["datetime"].values).round("1h")
             if nearest_time != previous_time:
+                if previous_time != None:
+                    subprocess.run(
+                        f"rm /tmp/wrfinput_d02_{previous_time:%Y-%m-%d_%H:00:00}",
+                        shell=True)
+                subprocess.run(
+                    f"cp {wrfinput_dir}/wrfinput_d02_{nearest_time:%Y-%m-%d_%H:00:00} /tmp",
+                    shell=True)
                 ds_wrf = xr.open_dataset(
-                    f"{wrfinput_dir}/wrfinput_d02_{nearest_time:%Y-%m-%d_%H:00:00}").squeeze()
+                    f"/tmp/wrfinput_d02_{nearest_time:%Y-%m-%d_%H:00:00}").squeeze()
                 ds_wrf["hgt"] = wrf_calc.height(ds_wrf)
                 ds_wrf["prs"] = wrf_calc.pressure(ds_wrf) / 100
                 previous_time = nearest_time
@@ -85,16 +91,22 @@ for dawn_filename in dawn_filenames:
                     df["ZOB"]))
 
                 df.to_csv(
-                    "dawn_processed.csv", index=False,
+                    "/tmp/dawn_processed.csv", index=False,
                     columns=["POB", "ZOB", "UOB", "VOB"], header=False)
 
                 for prepbufr_filename in prepbufr_filenames:
                     print("adding data to", prepbufr_filename(date))
                     Path(prepbufr_dir(date)).mkdir(parents=True, exist_ok=True)
                     subprocess.run(
-                        ["./prepbufr_encode_upperair_dawn.exe",
-                        f"{prepbufr_dir(date)}/{prepbufr_filename(date)}",
+                        ["/tmp/prepbufr_encode_upperair_dawn.exe",
+                        f"/tmp/prepbufr_{date:%Y%m%d}/{prepbufr_filename(date)}",
                         f"{date:%Y%m%d%H}",
                         f"{ds_point['Profile_Longitude'].values + 360}",
                         f"{ds_point['Profile_Latitude'].values}", f"{dt}",
-                        "dawn_processed.csv"])
+                        "/tmp/dawn_processed.csv"])
+
+    subprocess.run(f"rm /tmp/{dawn_filename}", shell=True)
+
+for date in pd.date_range(start_date, end_date, freq="1d"):
+    subprocess.run(
+        f"mv /tmp/prepbufr_{date:%Y%m%d}/* {prepbufr_dir(date)}", shell=True)

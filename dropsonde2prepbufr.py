@@ -15,7 +15,7 @@ start_date = datetime(2022, 9, 4, 0)
 end_date = datetime(2022, 9, 30, 18)
 frequency = timedelta(hours=6)
 
-prepbufr_dir = lambda date: f"../CPEX-CV/GDAS3/{date:%Y%m%d}/"
+prepbufr_dir = lambda date: f"../CPEX-CV/GDAS/{date:%Y%m%d}/"
 prepbufr_filenames = [
     lambda date: f"gdas_dropsonde.t{date:%H}z.prepbufr.nr",
     lambda date: f"gdas_dawn_dropsonde_halo.t{date:%H}z.prepbufr.nr",
@@ -25,12 +25,22 @@ prepbufr_filenames = [
 dropsonde_dir = "../CPEX-CV/data_preliminary/dropsonde"
 dropsonde_prefix = "CPEXCV-dropsonde_DC8_*_RA.nc"
 
-filenames = glob.glob(f"{dropsonde_dir}/{dropsonde_prefix}")
+subprocess.run(f"cp {dropsonde_dir}/{dropsonde_prefix} /tmp", shell=True)
+subprocess.run("cp prepbufr_encode_upperair_dropsonde.exe /tmp", shell=True)
+subprocess.run("cp -r lib /tmp", shell=True)
+for date in pd.date_range(start_date, end_date, freq=frequency):
+    subprocess.run(f"mkdir /tmp/prepbufr_{date:%Y%m%d}/", shell=True)
+    for prepbufr_filename in prepbufr_filenames:
+        subprocess.run(
+            f"cp {prepbufr_dir(date)}/{prepbufr_filename(date)} /tmp/prepbufr_{date:%Y%m%d}/",
+            shell=True)
+
+filenames = glob.glob(f"/tmp/{dropsonde_prefix}")
 z_keep = helpers.vertical_levels()
 
 for date in pd.date_range(start_date, end_date, freq=frequency):
     print("creating prepbufr for", date)
-
+4
     start_window = date - frequency / 2
     end_window = date + frequency / 2
     print("searching for dropsondes between", start_window, end_window)
@@ -93,11 +103,11 @@ for date in pd.date_range(start_date, end_date, freq=frequency):
             df_averaged_mass = pd.DataFrame({
                 "POB": POBmass, "QOB": QOB, "TOB": TOB, "ZOB": ZOBmass})
             df_averaged_mass.to_csv(
-                "dropsonde_processed_mass.csv", index=False, header=False)
+                "/tmp/dropsonde_processed_mass.csv", index=False, header=False)
             df_averaged_wind = pd.DataFrame({
                 "POB": POBwind, "ZOB": ZOBwind, "UOB": UOB, "VOB": VOB})
             df_averaged_wind.to_csv(
-                "dropsonde_processed_wind.csv", index=False, header=False)
+                "/tmp/dropsonde_processed_wind.csv", index=False, header=False)
 
             if (len(POBmass) or len(POBwind)):
                 print(len(POBmass), len(POBwind))
@@ -106,9 +116,13 @@ for date in pd.date_range(start_date, end_date, freq=frequency):
                     print("adding data to", prepbufr_filename(date))
                     Path(prepbufr_dir(date)).mkdir(parents=True, exist_ok=True)
                     subprocess.run(
-                        ["./prepbufr_encode_upperair_dropsonde.exe",
-                        f"{prepbufr_dir(date)}/{prepbufr_filename(date)}",
+                        ["/tmp/prepbufr_encode_upperair_dropsonde.exe",
+                        f"/tmp/prepbufr_{date:%Y%m%d}/{prepbufr_filename(date)}",
                         f"{date:%Y%m%d%H}", f"{lon + 360}",
-                        f"{lat}", f"{dt}", "dropsonde_processed_mass.csv",
-                        "dropsonde_processed_wind.csv", str(len(POBmass)),
+                        f"{lat}", f"{dt}", "/tmp/dropsonde_processed_mass.csv",
+                        "/tmp/dropsonde_processed_wind.csv", str(len(POBmass)),
                         str(len(POBwind))])
+
+for date in pd.date_range(start_date, end_date, freq="1d"):
+    subprocess.run(
+        f"mv /tmp/prepbufr_{date:%Y%m%d}/* {prepbufr_dir(date)}", shell=True)
