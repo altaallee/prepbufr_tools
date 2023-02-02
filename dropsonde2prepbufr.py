@@ -40,7 +40,6 @@ z_keep = helpers.vertical_levels()
 
 for date in pd.date_range(start_date, end_date, freq=frequency):
     print("creating prepbufr for", date)
-4
     start_window = date - frequency / 2
     end_window = date + frequency / 2
     print("searching for dropsondes between", start_window, end_window)
