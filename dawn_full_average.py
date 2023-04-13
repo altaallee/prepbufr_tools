@@ -4,7 +4,7 @@ parser = argparse.ArgumentParser(description="Average DAWN data.")
 parser.add_argument(
     "--filename", required=True, type=str, help="Name of DAWN file.")
 parser.add_argument(
-    "--directory", default="../CPEX-CV/data_semifinal/DAWN/", type=str,
+    "--directory", default="../CPEX-CV/data_R0/DAWN/", type=str,
     help="Directory of DAWN file.")
 parser.add_argument(
     "--output_dir", default="postprocessed_obs/CPEX-CV/DAWN/", type=str,
@@ -25,7 +25,7 @@ parser.add_argument(
 args = parser.parse_args()
 
 import sys
-sys.path.insert(1, "../dev/plotters/")
+sys.path.insert(1, "../plotters_cv/")
 import subprocess
 from datetime import datetime
 from python_imports import extra
