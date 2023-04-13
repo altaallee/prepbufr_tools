@@ -4,7 +4,7 @@ parser = argparse.ArgumentParser(description="Average HALO data.")
 parser.add_argument(
     "--filename", required=True, type=str, help="Name of HALO file.")
 parser.add_argument(
-    "--directory", default="../CPEX-CV/data_semifinal/HALO/", type=str,
+    "--directory", default="../CPEX-CV/data_R0/HALO/", type=str,
     help="Directory of HALO file.")
 parser.add_argument(
     "--output_dir", default="postprocessed_obs/CPEX-CV/HALO/", type=str,
@@ -25,7 +25,7 @@ parser.add_argument(
 args = parser.parse_args()
 
 import sys
-sys.path.insert(1, "../dev/plotters/")
+sys.path.insert(1, "../plotters_cv/")
 import subprocess
 from datetime import datetime
 from python_imports import extra
@@ -37,12 +37,12 @@ if args.trim_plot:
     trim_start = datetime.strptime(args.trim_start, "%Y%m%d%H%M")
     trim_end = datetime.strptime(args.trim_end, "%Y%m%d%H%M")
     ds_halo = extra.get_halo_data(
-        filename=f"/tmp/{args.filename}", start=trim_start, end=trim_end, preliminary=True)
+        filename=f"/tmp/{args.filename}", start=trim_start, end=trim_end)
 else:
-    ds_halo = extra.get_halo_data(filename=f"/tmp/{args.filename}", preliminary=True)
+    ds_halo = extra.get_halo_data(filename=f"/tmp/{args.filename}")
 
 ds_halo_avg = extra.full_average_halo(
-    ds_halo, args.dx, extra.vertical_levels(), ["h2o_mmr_v"])
+    ds_halo, args.dx, extra.vertical_levels(), ["h2o_mmr_v", "532_ext"])
 
 Path(args.output_dir).mkdir(parents=True, exist_ok=True)
 ds_halo_avg.to_netcdf(
