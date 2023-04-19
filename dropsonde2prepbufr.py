@@ -22,8 +22,8 @@ prepbufr_filenames = [
     lambda date: f"dropsonde.t{date:%H}z.prepbufr.nr",
 ]
 
-dropsonde_dir = "../CPEX-CV/data_preliminary/dropsonde"
-dropsonde_prefix = "CPEXCV-dropsonde_DC8_*_RA.nc"
+dropsonde_dir = "../CPEX-CV/data_R0/dropsonde/"
+dropsonde_prefix = "CPEX_AVAPS_RD41_v1_2022*"
 
 subprocess.run(f"cp {dropsonde_dir}/{dropsonde_prefix} /tmp", shell=True)
 subprocess.run("cp prepbufr_encode_upperair_dropsonde.exe /tmp", shell=True)
