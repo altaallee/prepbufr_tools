@@ -1,5 +1,5 @@
 import sys
-sys.path.insert(1, "../dev/plotters/")
+sys.path.insert(1, "../plotters_cv/")
 from datetime import datetime, timedelta
 import xarray as xr
 from python_imports import extra, wrf_calc
