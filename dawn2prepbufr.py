@@ -25,7 +25,7 @@ dawn_dir = "postprocessed_obs/CPEX-CV/DAWN/"
 dawn_filenames = [
 ]
 
-wrfinput_dir = "/nobackupp12/alee31/CPEX-CV/era5_wrfinput/"
+wrfinput_dir = "/nobackupp28/alee31/CPEX-CV/era5_wrfinput/"
 
 subprocess.run("cp prepbufr_encode_upperair_dawn.exe /tmp", shell=True)
 subprocess.run("cp -r lib /tmp", shell=True)
