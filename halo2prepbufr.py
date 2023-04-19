@@ -63,6 +63,13 @@ for halo_filename in halo_filenames:
             dt = (ds_point["datetime"].values - date).days * 24 + \
                 (ds_point["datetime"].values - date).seconds / 3600
             print("found HALO scan at", ds_point["datetime"].values, "dt =", dt)
+            current_time = pd.to_datetime(ds_point["datetime"].values)
+            if (((current_time > datetime(2022, 9, 22, 10, 30)) &
+                 (current_time < datetime(2022, 9, 22, 11, 2))) |
+                ((current_time > datetime(2022, 9, 22, 11, 10)) &
+                 (current_time < datetime(2022, 9, 22, 12, 5)))):
+                print("skipping flyover")
+                continue
 
             nearest_time = pd.Timestamp(ds_point["datetime"].values).round("1h")
             if nearest_time != previous_time:
