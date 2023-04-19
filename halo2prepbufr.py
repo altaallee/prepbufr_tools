@@ -33,7 +33,7 @@ subprocess.run("cp prepbufr_encode_upperair_halo.exe /tmp", shell=True)
 subprocess.run("cp -r lib /tmp", shell=True)
 
 for date in pd.date_range(start_date, end_date, freq=frequency):
-    subprocess.run(f"mkdir /tmp/prepbufr_{date:%Y%m%d}/", shell=True)
+    Path(f"/tmp/prepbufr_{date:%Y%m%d}/").mkdir(parents=True, exist_ok=True)
     for prepbufr_filename in prepbufr_filenames:
         subprocess.run(
             f"cp {prepbufr_dir(date)}/{prepbufr_filename(date)} /tmp/prepbufr_{date:%Y%m%d}/",
