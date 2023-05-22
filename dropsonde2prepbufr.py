@@ -46,11 +46,11 @@ for date in pd.date_range(start_date, end_date, freq=frequency):
 
     for filename in sorted(filenames):
         ds, launch_time = extra.get_dropsonde_data(
-            filename, subset=["pres", "gpsalt"])
+            filename, subset=["pres", "alt"])
         ds_mass, _ = extra.get_dropsonde_data(
-            filename, subset=["pres", "tdry", "mr", "gpsalt"])
+            filename, subset=["pres", "vt", "mr", "alt"])
         ds_wind, _ = extra.get_dropsonde_data(
-            filename, subset=["pres", "gpsalt", "u_wind", "v_wind"])
+            filename, subset=["pres", "alt", "u_wind", "v_wind"])
 
         if (launch_time > start_window) & (launch_time < end_window) & (len(ds["pres"]) > 0):
             dt = (launch_time - date).days * 24 + (launch_time - date).seconds / 3600
@@ -60,12 +60,12 @@ for date in pd.date_range(start_date, end_date, freq=frequency):
 
             ds_mass["Specific_Humidity"] = mpcalc.specific_humidity_from_mixing_ratio(
                 ds_mass["mr"])
-            if len(ds_mass["pres"]) > 0:
-                min_z_mass = ds_mass["gpsalt"].min()
-                max_z_mass = ds_mass["gpsalt"].max()
-            if len(ds_wind["pres"]) > 0:
-                min_z_wind = ds_wind["gpsalt"].min()
-                max_z_wind = ds_wind["gpsalt"].max()
+            if len(ds_mass["pres"]):
+                min_z_mass = ds_mass["alt"].min()
+                max_z_mass = ds_mass["alt"].max()
+            if len(ds_wind["pres"]):
+                min_z_wind = ds_wind["alt"].min()
+                max_z_wind = ds_wind["alt"].max()
 
             POBmass = []
             POBwind = []
@@ -81,8 +81,8 @@ for date in pd.date_range(start_date, end_date, freq=frequency):
                     if (z > min_z_mass) & (z + 1.1 * dz < max_z_mass):
                         averages = mpcalc.mean_pressure_weighted(
                             ds_mass["pres"], ds_mass["pres"],
-                            ds_mass["Specific_Humidity"], ds_mass["tdry"],
-                            ds_mass["gpsalt"], height=ds_mass["gpsalt"],
+                            ds_mass["Specific_Humidity"], ds_mass["vt"],
+                            ds_mass["alt"], height=ds_mass["alt"],
                             bottom=z, depth=dz)
                         POBmass.append(averages[0].to(units("millibar")).m)
                         QOB.append(averages[1].to(units("milligrams / kilogram")).m)
@@ -91,9 +91,9 @@ for date in pd.date_range(start_date, end_date, freq=frequency):
                 if len(ds_wind["pres"]) > 0:
                     if (z > min_z_wind) & (z + 1.1 * dz < max_z_wind):
                         averages = mpcalc.mean_pressure_weighted(
-                            ds_wind["pres"], ds_wind["pres"], ds_wind["gpsalt"],
+                            ds_wind["pres"], ds_wind["pres"], ds_wind["alt"],
                             ds_wind["u_wind"], ds_wind["v_wind"],
-                            height=ds_wind["gpsalt"], bottom=z, depth=dz)
+                            height=ds_wind["alt"], bottom=z, depth=dz)
                         POBwind.append(averages[0].to(units("millibar")).m)
                         ZOBwind.append(averages[1].to(units("meter")).m)
                         UOB.append(averages[2].to(units("meter / second")).m)
