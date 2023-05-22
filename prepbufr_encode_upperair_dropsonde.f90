@@ -33,7 +33,7 @@ program prepbufr_encode_upperair
    character(200)     :: pb_filename, char_arg, ds_filename_mass, &
                          ds_filename_wind, csv_line
    integer            :: cycle_time, mass_len, wind_len
-   real(8)            :: longitude, latitude, time
+   real(8)            :: longitude, latitude, time, alt
    logical            :: pb_exist
    integer            :: unit_ds = 30, iostat
 
@@ -88,8 +88,7 @@ program prepbufr_encode_upperair
    c_sid = '12345'; hdr(1) = rstation_id
    hdr(2) = longitude; hdr(3) = latitude; hdr(4) = time; hdr(6) = 0.0
 
-   hdr(5) = 132 ! report type: MASS Report - Flight-level reconnaissance and profile dropsonde
-   hdr(8) = 75.
+   hdr(8) = 31
    obs = 10.0e10; qcf = 10.0e10; oer = 10.0e10
 
    if (mass_len .gt. 0) then
@@ -97,17 +96,30 @@ program prepbufr_encode_upperair
       do while (iostat == 0)
          read (unit_ds, '(a)', iostat=iostat) csv_line
          nlvl = nlvl + 1
-         read (csv_line, *) obs(1, nlvl), obs(2, nlvl), obs(3, nlvl), &
-            obs(4, nlvl)
-         obs(8, nlvl) = 4.0
 
          qcf(1, nlvl) = 1.; qcf(2, nlvl) = 1.; qcf(3, nlvl) = 1.
          qcf(4, nlvl) = 1.; qcf(5, nlvl) = 1.
          oer(1, nlvl) = 1.; oer(2, nlvl) = 1.; oer(3, nlvl) = 1.
          oer(5, nlvl) = 1.
+
+         read (csv_line, *) obs(1, nlvl), obs(2, nlvl), obs(3, nlvl), &
+            obs(4, nlvl)
+         if ((obs(4, nlvl) .eq. 0.0) .and. (nlvl .eq. 1)) then
+            hdr(5) = 182 ! MASS Report - Splash-level dropsonde over ocean
+            obs(8, nlvl) = 0.0
+            call ufbint(unit_out, hdr, mxmn, 1, iret, hdstr)
+            call ufbint(unit_out, obs, mxmn, nlvl, iret, obstr)
+            call ufbint(unit_out, oer, mxmn, nlvl, iret, oestr)
+            call ufbint(unit_out, qcf, mxmn, nlvl, iret, qcstr)
+            call writsb(unit_out)
+         else
+            obs(8, nlvl) = 2.0
+         end if
+
       end do
 
       ! encode obs
+      hdr(5) = 132 ! report type: MASS Report - Flight-level reconnaissance and profile dropsonde
       call ufbint(unit_out, hdr, mxmn, 1, iret, hdstr)
       call ufbint(unit_out, obs, mxmn, nlvl, iret, obstr)
       call ufbint(unit_out, oer, mxmn, nlvl, iret, oestr)
@@ -115,7 +127,6 @@ program prepbufr_encode_upperair
       call writsb(unit_out)
    end if
 
-   hdr(5) = 232 ! report type: WIND Report - Flight-level reconnaissance and profile dropsonde
    obs = 10.0e10; qcf = 10.0e10; oer = 10.0e10
 
    if (wind_len .gt. 0) then
@@ -125,17 +136,30 @@ program prepbufr_encode_upperair
       do while (iostat == 0)
          read (unit_ds, '(a)', iostat=iostat) csv_line
          nlvl = nlvl + 1
-         read (csv_line, *) obs(1, nlvl), obs(4, nlvl), obs(5, nlvl), &
-            obs(6, nlvl)
-         obs(8, nlvl) = 4.0
 
          qcf(1, nlvl) = 1.; qcf(2, nlvl) = 1.; qcf(3, nlvl) = 1.
          qcf(4, nlvl) = 1.; qcf(5, nlvl) = 1.
          oer(1, nlvl) = 1.; oer(2, nlvl) = 1.; oer(3, nlvl) = 1.
          oer(5, nlvl) = 1.
+
+         read (csv_line, *) obs(1, nlvl), alt, obs(5, nlvl), obs(6, nlvl)
+         if ((alt .eq. 0.0) .and. (nlvl .eq. 1)) then
+            hdr(5) = 282 ! WIND Report - Splash-level dropsonde over ocean
+            obs(8, nlvl) = 6.0
+            call ufbint(unit_out, hdr, mxmn, 1, iret, hdstr)
+            call ufbint(unit_out, obs, mxmn, nlvl, iret, obstr)
+            call ufbint(unit_out, oer, mxmn, nlvl, iret, oestr)
+            call ufbint(unit_out, qcf, mxmn, nlvl, iret, qcstr)
+            call writsb(unit_out)
+         else
+            obs(8, nlvl) = 3.0
+         end if
+
       end do
 
       ! encode obs
+      hdr(5) = 232 ! report type: WIND Report - Flight-level reconnaissance and profile dropsonde
+      obs(8, 1) = 3
       call ufbint(unit_out, hdr, mxmn, 1, iret, hdstr)
       call ufbint(unit_out, obs, mxmn, nlvl, iret, obstr)
       call ufbint(unit_out, oer, mxmn, nlvl, iret, oestr)
