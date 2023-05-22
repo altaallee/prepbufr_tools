@@ -112,6 +112,9 @@ for dawn_filename in dawn_filenames:
 
     subprocess.run(f"rm /tmp/{dawn_filename}", shell=True)
 
+if previous_time != None:
+    subprocess.run(
+        f"rm /tmp/wrfinput_d02_{previous_time:%Y-%m-%d_%H:00:00}", shell=True)
 for date in pd.date_range(start_date, end_date, freq="1d"):
     subprocess.run(
         f"mv /tmp/prepbufr_{date:%Y%m%d}/* {prepbufr_dir(date)}", shell=True)
