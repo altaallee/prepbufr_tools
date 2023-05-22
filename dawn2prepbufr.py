@@ -50,11 +50,11 @@ for dawn_filename in dawn_filenames:
         print("searching for DAWN data between", start_window, end_window)
 
         ds_segment = ds.sel(
-            {"number_profile_records":
+            {"time":
             (ds["datetime"] > start_window) & (ds["datetime"] < end_window)})
         
-        for i in ds_segment["number_profile_records"]:
-            ds_point = ds_segment.sel({"number_profile_records": i})
+        for i in ds_segment["time"]:
+            ds_point = ds_segment.sel({"time": i})
             dt = (ds_point["datetime"].values - date).days * 24 + \
                 (ds_point["datetime"].values - date).seconds / 3600
             print(
@@ -91,8 +91,7 @@ for dawn_filename in dawn_filenames:
     
             if df.size:
                 ds_wrf_point = extra.interp_point(
-                    ds_wrf, ds_point["Profile_Longitude"],
-                    ds_point["Profile_Latitude"])
+                    ds_wrf, ds_point["lon"], ds_point["lat"])
                 df["POB"] = 1 / np.log(wrf_calc.interpolate_1d(
                     ds_wrf_point["hgt"], np.exp(1 / ds_wrf_point["prs"]),
                     df["ZOB"]))
@@ -107,9 +106,8 @@ for dawn_filename in dawn_filenames:
                     subprocess.run(
                         ["/tmp/prepbufr_encode_upperair_dawn.exe",
                         f"/tmp/prepbufr_{date:%Y%m%d}/{prepbufr_filename(date)}",
-                        f"{date:%Y%m%d%H}",
-                        f"{ds_point['Profile_Longitude'].values + 360}",
-                        f"{ds_point['Profile_Latitude'].values}", f"{dt}",
+                        f"{date:%Y%m%d%H}", f"{ds_point['lon'].values + 360}",
+                        f"{ds_point['lat'].values}", f"{dt}",
                         "/tmp/dawn_processed.csv"])
 
     subprocess.run(f"rm /tmp/{dawn_filename}", shell=True)

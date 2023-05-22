@@ -56,10 +56,10 @@ for halo_filename in halo_filenames:
         print("searching for HALO data between", start_window, end_window)
 
         ds_segment = ds.sel(
-            {"x": (ds["datetime"] > start_window) & (ds["datetime"] < end_window)})
+            {"time": (ds["datetime"] > start_window) & (ds["datetime"] < end_window)})
         
-        for i in ds_segment["x"]:
-            ds_point = ds_segment.sel({"x": i})
+        for i in ds_segment["time"]:
+            ds_point = ds_segment.sel({"time": i})
             dt = (ds_point["datetime"].values - date).days * 24 + \
                 (ds_point["datetime"].values - date).seconds / 3600
             print("found HALO scan at", ds_point["datetime"].values, "dt =", dt)
