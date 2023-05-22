@@ -55,8 +55,8 @@ for date in pd.date_range(start_date, end_date, freq=frequency):
         if (launch_time > start_window) & (launch_time < end_window) & (len(ds["pres"]) > 0):
             dt = (launch_time - date).days * 24 + (launch_time - date).seconds / 3600
             print("found dropsonde at", launch_time, "dt =", dt)
-            lon = ds["lon"].mean()
-            lat = ds["lat"].mean()
+            lon = round(ds["reference_lon"][0] + 360, 1)
+            lat = round(ds["reference_lat"][0], 1)
 
             ds_mass["Specific_Humidity"] = mpcalc.specific_humidity_from_mixing_ratio(
                 ds_mass["mr"])
