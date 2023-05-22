@@ -67,14 +67,24 @@ for date in pd.date_range(start_date, end_date, freq=frequency):
                 min_z_wind = ds_wind["alt"].min()
                 max_z_wind = ds_wind["alt"].max()
 
-            POBmass = []
-            POBwind = []
-            QOB = []
-            TOB = []
-            ZOBmass = []
-            ZOBwind = []
-            UOB = []
-            VOB = []
+            if len(ds_mass["pres"]):
+                POBmass = [ds_mass["pres"][0].to(units("millibar")).m]
+                POBwind = [ds_mass["pres"][0].to(units("millibar")).m]
+                QOB = [ds_mass["Specific_Humidity"][0].to(units("milligrams / kilogram")).m]
+                TOB = [ds_mass["vt"][0].to(units("celsius")).m]
+                ZOBmass = [ds_mass["alt"][0].to(units("meter")).m]
+                ZOBwind = [ds_mass["alt"][0].to(units("meter")).m]
+                UOB = [10**10]
+                VOB = [10**10]
+            else:
+                POBmass = []
+                POBwind = []
+                QOB = []
+                TOB = []
+                ZOBmass = []
+                ZOBwind = []
+                UOB = []
+                VOB = []
 
             for dz, z in zip((z_keep[1:] - z_keep[:-1]) * units("meter"), z_keep[1:] * units("meter")):
                 if len(ds_mass["pres"]) > 0:
