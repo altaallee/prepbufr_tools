@@ -11,8 +11,8 @@ from pathlib import Path
 import subprocess
 
 
-start_date = datetime(2022, 9, 22, 0)
-end_date = datetime(2022, 9, 22, 18)
+start_date = datetime(2022, 9, 4, 0)
+end_date = datetime(2022, 9, 30, 18)
 frequency = timedelta(hours=6)
 
 prepbufr_dir = lambda date: f"../CPEX-CV/GDAS_R0_HALO_R1/{date:%Y%m%d}/"
@@ -169,7 +169,6 @@ for date in pd.date_range(start_date, end_date, freq=frequency):
                         "/tmp/dropsonde_processed_wind.csv", str(len(POBmass)),
                         str(len(POBwind))])
 
-            break
 subprocess.run(f"rm /tmp/{dropsonde_prefix}", shell=True)
 for date in pd.date_range(start_date, end_date, freq="1d"):
     subprocess.run(
