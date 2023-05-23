@@ -95,9 +95,9 @@ program prepbufr_encode_upperair
 
    ! encode obs
    call ufbint(unit_out, hdr, mxmn, 1, iret, hdstr)
-   call ufbint(unit_out, obs, mxmn, nlvl, iret, obstr)
-   call ufbint(unit_out, oer, mxmn, nlvl, iret, oestr)
-   call ufbint(unit_out, qcf, mxmn, nlvl, iret, qcstr)
+   call ufbint(unit_out, obs, mxmn, nlvl, iret - 1, obstr)
+   call ufbint(unit_out, oer, mxmn, nlvl, iret - 1, oestr)
+   call ufbint(unit_out, qcf, mxmn, nlvl, iret - 1, qcstr)
    call writsb(unit_out)
 
    call closmg(unit_out)

@@ -121,9 +121,9 @@ program prepbufr_encode_upperair
       ! encode obs
       hdr(5) = 132 ! report type: MASS Report - Flight-level reconnaissance and profile dropsonde
       call ufbint(unit_out, hdr, mxmn, 1, iret, hdstr)
-      call ufbint(unit_out, obs, mxmn, nlvl, iret, obstr)
-      call ufbint(unit_out, oer, mxmn, nlvl, iret, oestr)
-      call ufbint(unit_out, qcf, mxmn, nlvl, iret, qcstr)
+      call ufbint(unit_out, obs, mxmn, nlvl - 1, iret, obstr)
+      call ufbint(unit_out, oer, mxmn, nlvl - 1, iret, oestr)
+      call ufbint(unit_out, qcf, mxmn, nlvl - 1, iret, qcstr)
       call writsb(unit_out)
    end if
 
@@ -161,9 +161,9 @@ program prepbufr_encode_upperair
       hdr(5) = 232 ! report type: WIND Report - Flight-level reconnaissance and profile dropsonde
       obs(8, 1) = 3
       call ufbint(unit_out, hdr, mxmn, 1, iret, hdstr)
-      call ufbint(unit_out, obs, mxmn, nlvl, iret, obstr)
-      call ufbint(unit_out, oer, mxmn, nlvl, iret, oestr)
-      call ufbint(unit_out, qcf, mxmn, nlvl, iret, qcstr)
+      call ufbint(unit_out, obs, mxmn, nlvl - 1, iret, obstr)
+      call ufbint(unit_out, oer, mxmn, nlvl - 1, iret, oestr)
+      call ufbint(unit_out, qcf, mxmn, nlvl - 1, iret, qcstr)
       call writsb(unit_out)
    end if
 
