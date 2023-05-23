@@ -4,7 +4,7 @@ parser = argparse.ArgumentParser(description="Average HALO data.")
 parser.add_argument(
     "--filename", required=True, type=str, help="Name of HALO file.")
 parser.add_argument(
-    "--directory", default="../CPEX-CV/data_R0/HALO/", type=str,
+    "--directory", default="../CPEX-CV/data_R1/HALO/", type=str,
     help="Directory of HALO file.")
 parser.add_argument(
     "--output_dir", default="postprocessed_obs/CPEX-CV/HALO/", type=str,
