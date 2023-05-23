@@ -9,7 +9,7 @@ freq = timedelta(hours=6)
 
 gdas_dir = lambda date: f"../CPEX-CV/GDAS_org/{date:%Y%m%d}/"
 prepbufr_filename = lambda date: f"gdas.t{date:%H}z.prepbufr.nr"
-destination_dir = lambda date: f"../CPEX-CV/GDAS3/{date:%Y%m%d}/"
+destination_dir = lambda date: f"../CPEX-CV/GDAS_R0_HALO_R1/{date:%Y%m%d}/"
 dawn_filename = lambda date: f"gdas_dawn.t{date:%H}z.prepbufr.nr"
 dropsonde_filename = lambda date: f"gdas_dropsonde.t{date:%H}z.prepbufr.nr"
 halo_filename = lambda date: f"gdas_halo.t{date:%H}z.prepbufr.nr"

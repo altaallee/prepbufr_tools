@@ -13,7 +13,7 @@ start_date = datetime(2022, 9, 4, 0)
 end_date = datetime(2022, 9, 30, 18)
 frequency = timedelta(hours=6)
 
-prepbufr_dir = lambda date: f"../CPEX-CV/GDAS/{date:%Y%m%d}/"
+prepbufr_dir = lambda date: f"../CPEX-CV/GDAS_R0_HALO_R1/{date:%Y%m%d}/"
 prepbufr_filenames = [
     lambda date: f"gdas_dawn.t{date:%H}z.prepbufr.nr",
     lambda date: f"gdas_dawn_dropsonde_halo.t{date:%H}z.prepbufr.nr",
@@ -23,6 +23,19 @@ prepbufr_filenames = [
 
 dawn_dir = "postprocessed_obs/CPEX-CV/DAWN/"
 dawn_filenames = [
+    "cpexcv-DAWN_DC8_20220906_R0.nc_full_averaged_12000.nc",
+    "cpexcv-DAWN_DC8_20220907_R0.nc_full_averaged_12000.nc",
+    "cpexcv-DAWN_DC8_20220909_R0.nc_full_averaged_12000.nc",
+    "cpexcv-DAWN_DC8_20220910_R0.nc_full_averaged_12000.nc",
+    "cpexcv-DAWN_DC8_20220914_R0.nc_full_averaged_12000.nc",
+    "cpexcv-DAWN_DC8_20220915_R0.nc_full_averaged_12000.nc",
+    "cpexcv-DAWN_DC8_20220916_R0.nc_full_averaged_12000.nc",
+    "cpexcv-DAWN_DC8_20220920_R0.nc_full_averaged_12000.nc",
+    "cpexcv-DAWN_DC8_20220922_R0.nc_full_averaged_12000.nc",
+    "cpexcv-DAWN_DC8_20220923_R0.nc_full_averaged_12000.nc",
+    "cpexcv-DAWN_DC8_20220926_R0.nc_full_averaged_12000.nc",
+    "cpexcv-DAWN_DC8_20220929_R0.nc_full_averaged_12000.nc",
+    "cpexcv-DAWN_DC8_20220930_R0.nc_full_averaged_12000.nc",
 ]
 
 wrfinput_dir = "/nobackupp28/alee31/CPEX-CV/era5_wrfinput/"
