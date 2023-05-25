@@ -131,3 +131,4 @@ if previous_time != None:
 for date in pd.date_range(start_date, end_date, freq="1d"):
     subprocess.run(
         f"mv /tmp/prepbufr_{date:%Y%m%d}/* {prepbufr_dir(date)}", shell=True)
+subprocess.run("rm /tmp/dawn_processed.csv", shell=True)

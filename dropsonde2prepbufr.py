@@ -170,6 +170,9 @@ for date in pd.date_range(start_date, end_date, freq=frequency):
                         str(len(POBwind))])
 
 subprocess.run(f"rm /tmp/{dropsonde_prefix}", shell=True)
+subprocess.run(f"rm /tmp/sonde*", shell=True)
+subprocess.run(f"rm /tmp/dropsonde_processed_mass.csv", shell=True)
+subprocess.run(f"rm /tmp/dropsonde_processed_wind.csv", shell=True)
 for date in pd.date_range(start_date, end_date, freq="1d"):
     subprocess.run(
         f"mv /tmp/prepbufr_{date:%Y%m%d}/* {prepbufr_dir(date)}", shell=True)
