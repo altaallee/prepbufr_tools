@@ -29,6 +29,7 @@ decoded_gdas_dropsonde_dir = "decoded_gdas_dropsonde_text"
 subprocess.run(f"cp {dropsonde_dir}/{dropsonde_prefix} /tmp", shell=True)
 subprocess.run("cp prepbufr_encode_upperair_dropsonde.exe /tmp", shell=True)
 subprocess.run("cp -r lib /tmp", shell=True)
+subprocess.run(f"cp {decoded_gdas_dropsonde_dir}/* /tmp", shell=True)
 for date in pd.date_range(start_date, end_date, freq=frequency):
     Path(f"/tmp/prepbufr_{date:%Y%m%d}/").mkdir(parents=True, exist_ok=True)
     for prepbufr_filename in prepbufr_filenames:
@@ -67,7 +68,7 @@ for date in pd.date_range(start_date, end_date, freq=frequency):
                 max_z_mass = ds_mass["alt"].max()
 
                 match_mass = glob.glob(
-                    f"{decoded_gdas_dropsonde_dir}/sonde_{date:%Y%m%d}??_132_{lon}_{lat}_*")
+                    f"/tmp/sonde_{date:%Y%m%d}??_132_{lon}_{lat}_*")
                 if len(match_mass) == 1:
                     _, cycle, _, lon, lat, dt = match_mass[0].split("/")[-1].split("_")
                     print("Found mass dropsonde at cycle", cycle)
@@ -84,7 +85,7 @@ for date in pd.date_range(start_date, end_date, freq=frequency):
                 max_z_wind = ds_wind["alt"].max()
 
                 match_wind = glob.glob(
-                    f"{decoded_gdas_dropsonde_dir}/sonde_{date:%Y%m%d}??_232_{lon}_{lat}_*")
+                    f"/tmp/sonde_{date:%Y%m%d}??_232_{lon}_{lat}_*")
                 if len(match_wind) == 1:
                     _, cycle, _, lon, lat, dt = match_wind[0].split("/")[-1].split("_")
                     print("Found wind dropsonde at cycle", cycle)
