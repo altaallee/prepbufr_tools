@@ -5,6 +5,7 @@ program prepbufr_decode_all
 !
 ! command line arguments
 ! 1: filename of prepbufr file
+! 2: filename of prepbufr file
 !
    implicit none
 
@@ -19,6 +20,7 @@ program prepbufr_decode_all
 
    character(8)       :: subset
    integer            :: table = 24, unit_in = 10, idate, nmsg, ntb
+   integer            :: text_out = 11
 
    character(8)       :: c_sid
    real(8)            :: rstation_id
@@ -26,11 +28,13 @@ program prepbufr_decode_all
 
    integer            :: i, k, iret
 
-   character(200)     :: filename
+   character(200)     :: filename, out_filename
 
    open (table, file='prepbufr.table')
    call get_command_argument(1, filename)
+   call get_command_argument(2, out_filename)
    open (unit_in, file=filename, form='unformatted', status='old')
+   open (text_out, file=out_filename, action='write')
    call openbf(unit_in, 'IN', unit_in)
    call dxdump(unit_in, table)
    call datelen(10)
@@ -38,8 +42,8 @@ program prepbufr_decode_all
    msg_report: do while (ireadmg(unit_in, subset, idate) == 0)
       nmsg = nmsg + 1
       ntb = 0
-      write (*, *)
-      write (*, '(3a,i10)') 'subset=', subset, ' cycle time=', idate
+      write (11, *)
+      write (11, '(3a,i10)') 'subset=', subset, ' cycle time=', idate
       sb_report: do while (ireadsb(unit_in) == 0)
          ntb = ntb + 1
          call ufbint(unit_in, hdr, mxmn, 1, iret, hdstr)
@@ -47,12 +51,12 @@ program prepbufr_decode_all
          call ufbint(unit_in, oer, mxmn, mxlv, iret, oestr)
          call ufbint(unit_in, qcf, mxmn, mxlv, iret, qcstr)
          rstation_id = hdr(1)
-         write (*, *)
-         write (*, '(2I10,a14,8f14.1)') ntb, iret, c_sid, (hdr(i), i=2, 8)
+         write (11, *)
+         write (11, '(2I10,a14,8f14.1)') ntb, iret, c_sid, (hdr(i), i=2, 8)
          do k = 1, iret
-            write (*, '(i3,a10,9f15.1)') k, 'obs =', (obs(i, k), i=1, 9)
-            write (*, '(i3,a10,9f15.1)') k, 'oer =', (oer(i, k), i=1, 7)
-            write (*, '(i3,a10,9f15.1)') k, 'qcf =', (qcf(i, k), i=1, 7)
+            write (11, '(i3,a10,9f15.1)') k, 'obs =', (obs(i, k), i=1, 9)
+            write (11, '(i3,a10,9f15.1)') k, 'oer =', (oer(i, k), i=1, 7)
+            write (11, '(i3,a10,9f15.1)') k, 'qcf =', (qcf(i, k), i=1, 7)
          end do
       end do sb_report
    end do msg_report
