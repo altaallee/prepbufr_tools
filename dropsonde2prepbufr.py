@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 import glob
 import helpers
 import pandas as pd
+import numpy as np
 from python_imports import extra
 import metpy.calc as mpcalc
 from metpy.units import units
@@ -14,6 +15,8 @@ import subprocess
 start_date = datetime(2022, 9, 4, 0)
 end_date = datetime(2022, 9, 30, 18)
 frequency = timedelta(hours=6)
+
+prs_condition = lambda prs: -9 * 10**-5 * prs ** 2 + 0.1125 * prs - 16
 
 prepbufr_dir = lambda date: f"../CPEX-CV/GDAS_R0_HALO_R1/{date:%Y%m%d}/"
 prepbufr_filenames = [
@@ -118,34 +121,38 @@ for date in pd.date_range(start_date, end_date, freq=frequency):
 
             for dz, z in zip((z_keep[1:] - z_keep[:-1]) * units("meter"), z_keep[1:] * units("meter")):
                 if len(ds_mass["pres"]) > 0:
-                    if (z > min_z_mass) & (z + 1.1 * dz < max_z_mass):
-                        averages = mpcalc.mean_pressure_weighted(
-                            ds_mass["pres"], ds_mass["pres"],
-                            ds_mass["Specific_Humidity"], ds_mass["vt"],
-                            ds_mass["alt"], height=ds_mass["alt"],
-                            bottom=z, depth=dz)
-                        prs = averages[0].to(units("millibar")).m
-                        if mass_exist & (abs(df_gdas_mass["pres"] - prs) < 10).any():
-                            print("Skipping mass preesure level", prs) 
-                            continue
-                        POBmass.append(prs)
-                        QOB.append(averages[1].to(units("milligrams / kilogram")).m)
-                        TOB.append(averages[2].to(units("celsius")).m)
-                        ZOBmass.append(averages[3].to(units("meter")).m)
+                    if (z > min_z_mass) and (z + 1.1 * dz < max_z_mass):
+                        if ds_mass["alt"][np.logical_and(
+                            ds_mass["alt"] > z, ds_mass["alt"] < z + dz)].any():
+                            averages = mpcalc.mean_pressure_weighted(
+                                ds_mass["pres"], ds_mass["pres"],
+                                ds_mass["Specific_Humidity"], ds_mass["vt"],
+                                ds_mass["alt"], height=ds_mass["alt"],
+                                bottom=z, depth=dz)
+                            prs = averages[0].to(units("millibar")).m
+                            if not (mass_exist and (abs(df_gdas_mass["pres"] - prs) < prs_condition(prs)).any()):
+                                POBmass.append(prs)
+                                QOB.append(averages[1].to(units("milligrams / kilogram")).m)
+                                TOB.append(averages[2].to(units("celsius")).m)
+                                ZOBmass.append(averages[3].to(units("meter")).m)
+                            else:
+                                print("Skipping mass preesure level", prs) 
                 if len(ds_wind["pres"]) > 0:
-                    if (z > min_z_wind) & (z + 1.1 * dz < max_z_wind):
-                        averages = mpcalc.mean_pressure_weighted(
-                            ds_wind["pres"], ds_wind["pres"], ds_wind["alt"],
-                            ds_wind["u_wind"], ds_wind["v_wind"],
-                            height=ds_wind["alt"], bottom=z, depth=dz)
-                        prs = averages[0].to(units("millibar")).m
-                        if wind_exist & (abs(df_gdas_wind["pres"] - prs) < 10).any():
-                            print("Skipping wind preesure level", prs)
-                            continue
-                        POBwind.append(averages[0].to(units("millibar")).m)
-                        ZOBwind.append(averages[1].to(units("meter")).m)
-                        UOB.append(averages[2].to(units("meter / second")).m)
-                        VOB.append(averages[3].to(units("meter / second")).m)
+                    if (z > min_z_wind) and (z + 1.1 * dz < max_z_wind):
+                        if ds_wind["alt"][np.logical_and(
+                            ds_wind["alt"] > z, ds_wind["alt"] < z + dz)].any():
+                            averages = mpcalc.mean_pressure_weighted(
+                                ds_wind["pres"], ds_wind["pres"], ds_wind["alt"],
+                                ds_wind["u_wind"], ds_wind["v_wind"],
+                                height=ds_wind["alt"], bottom=z, depth=dz)
+                            prs = averages[0].to(units("millibar")).m
+                            if not(wind_exist and (abs(df_gdas_wind["pres"] - prs) < prs_condition(prs)).any()):
+                                POBwind.append(averages[0].to(units("millibar")).m)
+                                ZOBwind.append(averages[1].to(units("meter")).m)
+                                UOB.append(averages[2].to(units("meter / second")).m)
+                                VOB.append(averages[3].to(units("meter / second")).m)
+                            else:
+                                print("Skipping wind preesure level", prs)
             
             df_averaged_mass = pd.DataFrame({
                 "POB": POBmass, "QOB": QOB, "TOB": TOB, "ZOB": ZOBmass})
