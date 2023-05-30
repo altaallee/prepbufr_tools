@@ -20,6 +20,7 @@ for date in pd.date_range(start_date, end_date, freq=freq):
     print(date)
 
     subprocess.run(f"rm {text_data_file}", shell=True)
+    subprocess.run(f"touch {text_data_file}", shell=True)
     subprocess.run(
         f"./prepbufr_write_dropsonde.exe {gdas_dir(date)}/{prepbufr_filename(date)} {text_data_file}",
         shell=True)
