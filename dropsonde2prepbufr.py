@@ -67,6 +67,8 @@ for date in pd.date_range(start_date, end_date, freq=frequency):
                 ds_mass["mr"])
 
             if len(ds_mass["pres"]):
+                min_p_mass = ds_mass["pres"].min()
+                max_p_mass = ds_mass["pres"].max()
                 min_z_mass = ds_mass["alt"].min()
                 max_z_mass = ds_mass["alt"].max()
 
@@ -84,6 +86,8 @@ for date in pd.date_range(start_date, end_date, freq=frequency):
                     cycle = date
 
             if len(ds_wind["pres"]):
+                min_p_wind = ds_wind["pres"].min()
+                max_p_wind = ds_wind["pres"].max()
                 min_z_wind = ds_wind["alt"].min()
                 max_z_wind = ds_wind["alt"].max()
 
@@ -154,12 +158,57 @@ for date in pd.date_range(start_date, end_date, freq=frequency):
                     else:
                         print("Skipping wind preesure level", prs)
             
+            if len(ds_mass["pres"]) and mass_exist:
+                df_mass_levels = pd.concat(
+                    [pd.Series(POBmass), df_gdas_mass["pres"]]).sort_values(
+                        ignore_index=True).to_frame("pres")
+                df_mass_levels["current_dp"] = df_mass_levels["pres"].diff()
+                df_mass_levels["mid_pres"] = df_mass_levels["pres"].rolling(2).mean()
+                df_mass_levels["expected_dp"] = df_mass_levels["mid_pres"].apply(prs_condition)
+                df_mass_levels = df_mass_levels[df_mass_levels["current_dp"] > 1.75 * df_mass_levels["expected_dp"]]
+                for _, row in df_mass_levels.iterrows():
+                    if ((row["mid_pres"] - row["expected_dp"] / 2) * units("millibar") > min_p_mass and
+                        (row["mid_pres"] + row["expected_dp"] / 2) * units("millibar") < max_p_mass):
+                        averages = mpcalc.mean_pressure_weighted(
+                            ds_mass["pres"], ds_mass["pres"],
+                            ds_mass["Specific_Humidity"], ds_mass["vt"],
+                            ds_mass["alt"], height=ds_mass["alt"],
+                            bottom=(row["mid_pres"] + row["expected_dp"] / 2) * units("millibar"),
+                            depth=row["expected_dp"] * units("millibar"))
+                        POBmass.append(averages[0].to(units("millibar")).m)
+                        QOB.append(averages[1].to(units("milligrams / kilogram")).m)
+                        TOB.append(averages[2].to(units("celsius")).m)
+                        ZOBmass.append(averages[3].to(units("meter")).m)
+            if len(ds_wind["pres"]) and wind_exist:
+                df_wind_levels = pd.concat(
+                    [pd.Series(POBwind), df_gdas_wind["pres"]]).sort_values(
+                        ignore_index=True).to_frame("pres")
+                df_wind_levels["current_dp"] = df_wind_levels["pres"].diff()
+                df_wind_levels["mid_pres"] = df_wind_levels["pres"].rolling(2).mean()
+                df_wind_levels["expected_dp"] = df_wind_levels["mid_pres"].apply(prs_condition)
+                df_wind_levels = df_wind_levels[df_wind_levels["current_dp"] > 1.75 * df_wind_levels["expected_dp"]]
+                for _, row in df_wind_levels.iterrows():
+                    if ((row["mid_pres"] - row["expected_dp"] / 2) * units("millibar") > min_p_wind and
+                        (row["mid_pres"] + row["expected_dp"] / 2) * units("millibar") < max_p_wind):
+                        averages = mpcalc.mean_pressure_weighted(
+                            ds_wind["pres"], ds_wind["pres"], ds_wind["alt"],
+                            ds_wind["u_wind"], ds_wind["v_wind"],
+                            height=ds_wind["alt"],
+                            bottom=(row["mid_pres"] + row["expected_dp"] / 2) * units("millibar"),
+                            depth=row["expected_dp"] * units("millibar"))
+                        POBwind.append(averages[0].to(units("millibar")).m)
+                        ZOBwind.append(averages[1].to(units("meter")).m)
+                        UOB.append(averages[2].to(units("meter / second")).m)
+                        VOB.append(averages[3].to(units("meter / second")).m)
+
             df_averaged_mass = pd.DataFrame({
-                "POB": POBmass, "QOB": QOB, "TOB": TOB, "ZOB": ZOBmass})
+                "POB": POBmass, "QOB": QOB, "TOB": TOB, "ZOB": ZOBmass}).sort_values(
+                    "POB", ascending=False)
             df_averaged_mass.to_csv(
                 "/tmp/dropsonde_processed_mass.csv", index=False, header=False)
             df_averaged_wind = pd.DataFrame({
-                "POB": POBwind, "ZOB": ZOBwind, "UOB": UOB, "VOB": VOB})
+                "POB": POBwind, "ZOB": ZOBwind, "UOB": UOB, "VOB": VOB}).sort_values(
+                    "POB", ascending=False)
             df_averaged_wind.to_csv(
                 "/tmp/dropsonde_processed_wind.csv", index=False, header=False)
 
