@@ -1,8 +1,12 @@
 __pycache__/
+decoded_appended_dropsonde_text/
+decoded_gdas_dropsonde_text/
+dropsonde_original_gdas_averaged_images/
 lib/
 location_files/
 location_plots/
 postprocessed_obs/
 prepbufr_files/
 *.exe
-*.csv
+*.pbs.sh
+log.*
