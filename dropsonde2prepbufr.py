@@ -50,27 +50,27 @@ for date in pd.date_range(start_date, end_date, freq=frequency):
     print("searching for dropsondes between", start_window, end_window)
 
     for filename in sorted(filenames):
-        ds, launch_time = extra.get_dropsonde_data(
+        df, launch_time = extra.get_dropsonde_data(
             filename, subset=["pres", "alt"])
-        ds_mass, _ = extra.get_dropsonde_data(
+        df_mass, _ = extra.get_dropsonde_data(
             filename, subset=["pres", "vt", "mr", "alt"])
-        ds_wind, _ = extra.get_dropsonde_data(
+        df_wind, _ = extra.get_dropsonde_data(
             filename, subset=["pres", "alt", "u_wind", "v_wind"])
 
-        if (launch_time > start_window) & (launch_time < end_window) & (len(ds["pres"]) > 0):
+        if (launch_time > start_window) & (launch_time < end_window) & (len(df["pres"]) > 0):
             dt = (launch_time - date).days * 24 + (launch_time - date).seconds / 3600
             print("found dropsonde at", launch_time, "dt =", dt)
-            lon = round(ds["reference_lon"][0] + 360, 1)
-            lat = round(ds["reference_lat"][0], 1)
+            lon = round(df["reference_lon"][0] + 360, 1)
+            lat = round(df["reference_lat"][0], 1)
 
-            ds_mass["Specific_Humidity"] = mpcalc.specific_humidity_from_mixing_ratio(
-                ds_mass["mr"])
+            df_mass["Specific_Humidity"] = mpcalc.specific_humidity_from_mixing_ratio(
+                df_mass["mr"])
 
-            if len(ds_mass["pres"]):
-                min_p_mass = ds_mass["pres"].min()
-                max_p_mass = ds_mass["pres"].max()
-                min_z_mass = ds_mass["alt"].min()
-                max_z_mass = ds_mass["alt"].max()
+            if len(df_mass["pres"]):
+                min_p_mass = df_mass["pres"].min()
+                max_p_mass = df_mass["pres"].max()
+                min_z_mass = df_mass["alt"].min()
+                max_z_mass = df_mass["alt"].max()
 
                 match_mass = glob.glob(
                     f"/tmp/sonde_{date:%Y%m%d}??_132_{lon}_{lat}_*")
@@ -85,11 +85,11 @@ for date in pd.date_range(start_date, end_date, freq=frequency):
                     mass_exist = False
                     cycle = date
 
-            if len(ds_wind["pres"]):
-                min_p_wind = ds_wind["pres"].min()
-                max_p_wind = ds_wind["pres"].max()
-                min_z_wind = ds_wind["alt"].min()
-                max_z_wind = ds_wind["alt"].max()
+            if len(df_wind["pres"]):
+                min_p_wind = df_wind["pres"].min()
+                max_p_wind = df_wind["pres"].max()
+                min_z_wind = df_wind["alt"].min()
+                max_z_wind = df_wind["alt"].max()
 
                 match_wind = glob.glob(
                     f"/tmp/sonde_{date:%Y%m%d}??_232_{lon}_{lat}_*")
@@ -104,13 +104,13 @@ for date in pd.date_range(start_date, end_date, freq=frequency):
                     wind_exist = False
                     cycle = date
 
-            if len(ds_mass["pres"]) & ((not mass_exist) & (not wind_exist)):
-                POBmass = [ds_mass["pres"][0].to(units("millibar")).m]
-                POBwind = [ds_mass["pres"][0].to(units("millibar")).m]
-                QOB = [ds_mass["Specific_Humidity"][0].to(units("milligrams / kilogram")).m]
-                TOB = [ds_mass["vt"][0].to(units("celsius")).m]
-                ZOBmass = [ds_mass["alt"][0].to(units("meter")).m]
-                ZOBwind = [ds_mass["alt"][0].to(units("meter")).m]
+            if len(df_mass["pres"]) & ((not mass_exist) & (not wind_exist)):
+                POBmass = [df_mass["pres"][0].to(units("millibar")).m]
+                POBwind = [df_mass["pres"][0].to(units("millibar")).m]
+                QOB = [df_mass["Specific_Humidity"][0].to(units("milligrams / kilogram")).m]
+                TOB = [df_mass["vt"][0].to(units("celsius")).m]
+                ZOBmass = [df_mass["alt"][0].to(units("meter")).m]
+                ZOBwind = [df_mass["alt"][0].to(units("meter")).m]
                 UOB = [10**10]
                 VOB = [10**10]
             else:
@@ -124,14 +124,14 @@ for date in pd.date_range(start_date, end_date, freq=frequency):
                 VOB = []
 
             for dz, z in zip((z_keep[1:] - z_keep[:-1]) * units("meter"), z_keep[1:] * units("meter")):
-                if (len(ds_mass["pres"]) and (z > min_z_mass) and
+                if (len(df_mass["pres"]) and (z > min_z_mass) and
                     (z + 1.1 * dz < max_z_mass) and
-                    ds_mass["alt"][np.logical_and(
-                        ds_mass["alt"] > z, ds_mass["alt"] < z + dz)].any()):
+                    df_mass["alt"][np.logical_and(
+                        df_mass["alt"] > z, df_mass["alt"] < z + dz)].any()):
                     averages = mpcalc.mean_pressure_weighted(
-                        ds_mass["pres"], ds_mass["pres"],
-                        ds_mass["Specific_Humidity"], ds_mass["vt"],
-                        ds_mass["alt"], height=ds_mass["alt"],
+                        df_mass["pres"], df_mass["pres"],
+                        df_mass["Specific_Humidity"], df_mass["vt"],
+                        df_mass["alt"], height=df_mass["alt"],
                         bottom=z, depth=dz)
                     prs = averages[0].to(units("millibar")).m
                     if not (mass_exist and (abs(df_gdas_mass["pres"] - prs) < prs_condition(prs)).any()):
@@ -141,14 +141,14 @@ for date in pd.date_range(start_date, end_date, freq=frequency):
                         ZOBmass.append(averages[3].to(units("meter")).m)
                     else:
                         print("Skipping mass preesure level", prs) 
-                if (len(ds_wind["pres"]) and (z > min_z_wind) and
+                if (len(df_wind["pres"]) and (z > min_z_wind) and
                     (z + 1.1 * dz < max_z_wind) and
-                    ds_wind["alt"][np.logical_and(
-                        ds_wind["alt"] > z, ds_wind["alt"] < z + dz)].any()):
+                    df_wind["alt"][np.logical_and(
+                        df_wind["alt"] > z, df_wind["alt"] < z + dz)].any()):
                     averages = mpcalc.mean_pressure_weighted(
-                        ds_wind["pres"], ds_wind["pres"], ds_wind["alt"],
-                        ds_wind["u_wind"], ds_wind["v_wind"],
-                        height=ds_wind["alt"], bottom=z, depth=dz)
+                        df_wind["pres"], df_wind["pres"], df_wind["alt"],
+                        df_wind["u_wind"], df_wind["v_wind"],
+                        height=df_wind["alt"], bottom=z, depth=dz)
                     prs = averages[0].to(units("millibar")).m
                     if not(wind_exist and (abs(df_gdas_wind["pres"] - prs) < prs_condition(prs)).any()):
                         POBwind.append(averages[0].to(units("millibar")).m)
@@ -158,7 +158,7 @@ for date in pd.date_range(start_date, end_date, freq=frequency):
                     else:
                         print("Skipping wind preesure level", prs)
             
-            if len(ds_mass["pres"]) and mass_exist:
+            if len(df_mass["pres"]) and mass_exist:
                 df_mass_levels = pd.concat(
                     [pd.Series(POBmass), df_gdas_mass["pres"]]).sort_values(
                         ignore_index=True).to_frame("pres")
@@ -170,16 +170,16 @@ for date in pd.date_range(start_date, end_date, freq=frequency):
                     if ((row["mid_pres"] - row["expected_dp"] / 2) * units("millibar") > min_p_mass and
                         (row["mid_pres"] + row["expected_dp"] / 2) * units("millibar") < max_p_mass):
                         averages = mpcalc.mean_pressure_weighted(
-                            ds_mass["pres"], ds_mass["pres"],
-                            ds_mass["Specific_Humidity"], ds_mass["vt"],
-                            ds_mass["alt"], height=ds_mass["alt"],
+                            df_mass["pres"], df_mass["pres"],
+                            df_mass["Specific_Humidity"], df_mass["vt"],
+                            df_mass["alt"], height=df_mass["alt"],
                             bottom=(row["mid_pres"] + row["expected_dp"] / 2) * units("millibar"),
                             depth=row["expected_dp"] * units("millibar"))
                         POBmass.append(averages[0].to(units("millibar")).m)
                         QOB.append(averages[1].to(units("milligrams / kilogram")).m)
                         TOB.append(averages[2].to(units("celsius")).m)
                         ZOBmass.append(averages[3].to(units("meter")).m)
-            if len(ds_wind["pres"]) and wind_exist:
+            if len(df_wind["pres"]) and wind_exist:
                 df_wind_levels = pd.concat(
                     [pd.Series(POBwind), df_gdas_wind["pres"]]).sort_values(
                         ignore_index=True).to_frame("pres")
@@ -191,9 +191,9 @@ for date in pd.date_range(start_date, end_date, freq=frequency):
                     if ((row["mid_pres"] - row["expected_dp"] / 2) * units("millibar") > min_p_wind and
                         (row["mid_pres"] + row["expected_dp"] / 2) * units("millibar") < max_p_wind):
                         averages = mpcalc.mean_pressure_weighted(
-                            ds_wind["pres"], ds_wind["pres"], ds_wind["alt"],
-                            ds_wind["u_wind"], ds_wind["v_wind"],
-                            height=ds_wind["alt"],
+                            df_wind["pres"], df_wind["pres"], df_wind["alt"],
+                            df_wind["u_wind"], df_wind["v_wind"],
+                            height=df_wind["alt"],
                             bottom=(row["mid_pres"] + row["expected_dp"] / 2) * units("millibar"),
                             depth=row["expected_dp"] * units("millibar"))
                         POBwind.append(averages[0].to(units("millibar")).m)
