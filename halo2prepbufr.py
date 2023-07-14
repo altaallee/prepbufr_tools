@@ -78,10 +78,105 @@ for halo_filename in halo_filenames:
                 (ds_point["datetime"].values - date).seconds / 3600
             print("found HALO scan at", ds_point["datetime"].values, "dt =", dt)
             current_time = pd.to_datetime(ds_point["datetime"].values)
-            if (((current_time > datetime(2022, 9, 22, 10, 30)) &
-                 (current_time < datetime(2022, 9, 22, 11, 2))) |
-                ((current_time > datetime(2022, 9, 22, 11, 10)) &
-                 (current_time < datetime(2022, 9, 22, 12, 5)))):
+            if (
+                # RF03 sprial
+                ((current_time > datetime(2022, 9, 9, 12, 57)) &
+                 (current_time < datetime(2022, 9, 9, 13, 2))) |
+                ((current_time > datetime(2022, 9, 9, 13, 6)) &
+                 (current_time < datetime(2022, 9, 9, 13, 7))) |
+                ((current_time > datetime(2022, 9, 9, 14, 12)) &
+                 (current_time < datetime(2022, 9, 9, 14, 16))) |
+                # RF03 intersections
+                ((current_time > datetime(2022, 9, 9, 17, 43)) &
+                 (current_time < datetime(2022, 9, 9, 17, 45, 15))) |
+                ((current_time > datetime(2022, 9, 9, 19, 12)) &
+                 (current_time < datetime(2022, 9, 9, 19, 15, 30))) |
+                ((current_time > datetime(2022, 9, 9, 19, 19)) &
+                 (current_time < datetime(2022, 9, 9, 19, 21, 30))) |
+
+                # RF04 spiral
+                ((current_time > datetime(2022, 9, 10, 16, 5, 30)) &
+                 (current_time < datetime(2022, 9, 10, 16, 6, 30))) |
+                ((current_time > datetime(2022, 9, 10, 16, 15)) &
+                 (current_time < datetime(2022, 9, 10, 16, 19))) |
+                # RF04 figure 4
+                ((current_time > datetime(2022, 9, 10, 17, 18)) &
+                 (current_time < datetime(2022, 9, 10, 17, 19, 30))) |
+                # RF04 racetrack
+                ((current_time > datetime(2022, 9, 10, 18, 7)) &
+                 (current_time < datetime(2022, 9, 10, 18, 9))) |
+                ((current_time > datetime(2022, 9, 10, 18, 19)) &
+                 (current_time < datetime(2022, 9, 10, 18, 28))) |
+                # RF04 loop
+                ((current_time > datetime(2022, 9, 10, 18, 34)) &
+                 (current_time < datetime(2022, 9, 10, 18, 35))) |
+                ((current_time > datetime(2022, 9, 10, 18, 37)) &
+                 (current_time < datetime(2022, 9, 10, 18, 39))) |
+                ((current_time > datetime(2022, 9, 10, 18, 41)) &
+                 (current_time < datetime(2022, 9, 10, 18, 43))) |
+
+                # RF06 intersection
+                ((current_time > datetime(2022, 9, 15, 15, 50)) &
+                 (current_time < datetime(2022, 9, 15, 15, 53))) |
+                # RF06 parking garage
+                ((current_time > datetime(2022, 9, 15, 17, 30)) &
+                 (current_time < datetime(2022, 9, 15, 17, 32))) |
+                # RF06 racetrack
+                ((current_time > datetime(2022, 9, 15, 18, 49, 30)) &
+                 (current_time < datetime(2022, 9, 15, 18, 50, 30))) |
+                ((current_time > datetime(2022, 9, 15, 19, 1)) &
+                 (current_time < datetime(2022, 9, 15, 19, 8))) |
+
+                # RF07
+                ((current_time > datetime(2022, 9, 16, 15, 52)) &
+                 (current_time < datetime(2022, 9, 16, 15, 53))) |
+                ((current_time > datetime(2022, 9, 16, 16, 4)) &
+                 (current_time < datetime(2022, 9, 16, 16, 5))) |
+                ((current_time > datetime(2022, 9, 16, 16, 50, 30)) &
+                 (current_time < datetime(2022, 9, 16, 16, 51, 30))) |
+                ((current_time > datetime(2022, 9, 16, 17, 0)) &
+                 (current_time < datetime(2022, 9, 16, 17, 3))) |
+                ((current_time > datetime(2022, 9, 16, 18, 1)) &
+                 (current_time < datetime(2022, 9, 16, 18, 2))) |
+
+                # RF08 intersections
+                ((current_time > datetime(2022, 9, 20, 6, 2)) &
+                 (current_time < datetime(2022, 9, 20, 6, 3))) |
+                ((current_time > datetime(2022, 9, 20, 7, 48, 30)) &
+                 (current_time < datetime(2022, 9, 20, 7, 50, 30))) |
+
+                # RF09 staircase
+                ((current_time > datetime(2022, 9, 22, 10, 39)) &
+                 (current_time < datetime(2022, 9, 22, 10, 44))) |
+                ((current_time > datetime(2022, 9, 22, 10, 46)) &
+                 (current_time < datetime(2022, 9, 22, 11, 1))) |
+                ((current_time > datetime(2022, 9, 22, 11, 16)) &
+                 (current_time < datetime(2022, 9, 22, 11, 58))) |
+
+                # RF10 spiral
+                ((current_time > datetime(2022, 9, 23, 7, 10)) &
+                 (current_time < datetime(2022, 9, 23, 7, 32))) |
+                ((current_time > datetime(2022, 9, 23, 7, 33)) &
+                 (current_time < datetime(2022, 9, 23, 7, 43))) |
+                ((current_time > datetime(2022, 9, 23, 7, 44)) &
+                 (current_time < datetime(2022, 9, 23, 7, 49, 30))) |
+                # RF10 bottom overlap
+                ((current_time > datetime(2022, 9, 23, 9, 59, 30)) &
+                 (current_time < datetime(2022, 9, 23, 10, 2))) |
+                ((current_time > datetime(2022, 9, 23, 10, 6)) &
+                 (current_time < datetime(2022, 9, 23, 10, 12))) |
+                # RF10 intersections
+                ((current_time > datetime(2022, 9, 23, 11, 32, 30)) &
+                 (current_time < datetime(2022, 9, 23, 11, 33, 30))) |
+                ((current_time > datetime(2022, 9, 23, 13, 59)) &
+                 (current_time < datetime(2022, 9, 23, 14, 0))) |
+
+                # RF12
+                ((current_time > datetime(2022, 9, 29, 7, 44)) &
+                 (current_time < datetime(2022, 9, 29, 7, 47))) |
+                ((current_time > datetime(2022, 9, 29, 7, 48)) &
+                 (current_time < datetime(2022, 9, 29, 7, 50)))
+                ):
                 print("skipping flyover")
                 continue
 

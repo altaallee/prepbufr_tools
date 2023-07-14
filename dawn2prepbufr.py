@@ -73,10 +73,30 @@ for dawn_filename in dawn_filenames:
             print(
                 "found DAWN scan at", ds_point["datetime"].values, "dt =", dt)
             current_time = pd.to_datetime(ds_point["datetime"].values)
-            if (((current_time > datetime(2022, 9, 22, 10, 30)) &
-                 (current_time < datetime(2022, 9, 22, 11, 2))) |
-                 ((current_time > datetime(2022, 9, 22, 11, 10)) &
-                  (current_time < datetime(2022, 9, 22, 12, 5)))):
+            if (
+                # RF06 parking garage
+                ((current_time > datetime(2022, 9, 15, 17, 5)) &
+                 (current_time < datetime(2022, 9, 15, 17, 6))) |
+                # RF06 racetrack
+                ((current_time > datetime(2022, 9, 15, 19, 7)) &
+                 (current_time < datetime(2022, 9, 15, 19, 8))) |
+
+                # RF07
+                ((current_time > datetime(2022, 9, 16, 20, 10)) &
+                 (current_time < datetime(2022, 9, 16, 20, 11))) |
+
+                # RF09 staircase
+                ((current_time > datetime(2022, 9, 22, 10, 37, 30)) &
+                 (current_time < datetime(2022, 9, 22, 11))) |
+                ((current_time > datetime(2022, 9, 22, 11, 18, 30)) &
+                 (current_time < datetime(2022, 9, 22, 11, 58))) |
+
+                # RF10 
+                ((current_time > datetime(2022, 9, 23, 12, 33)) &
+                 (current_time < datetime(2022, 9, 23, 12, 35))) |
+                ((current_time > datetime(2022, 9, 23, 13, 6, )) &
+                 (current_time < datetime(2022, 9, 23, 13, 13)))
+                ):
                 print("skipping flyover")
                 continue
 
