@@ -11,11 +11,16 @@ from pathlib import Path
 import subprocess
 
 
+num_levels = 60
+
 start_date = datetime(2022, 9, 4, 0)
 end_date = datetime(2022, 9, 30, 18)
 frequency = timedelta(hours=6)
 
-prs_condition = lambda prs: -9 * 10**-5 * prs ** 2 + 0.1125 * prs - 16
+if num_levels == 60:
+    prs_condition = lambda prs: -9 * 10**-5 * prs ** 2 + 0.1125 * prs - 16
+elif num_levels == 45
+    prs_condition = lambda prs: 1.1772615755*10**-15*prs**6 - 5.6433647319*10**-12*prs**5 + 9.8569456543*10**-9*prs**4 - 8.3496759069*10**-6*prs**3 + 3.6593810943*10**-3*prs**2 - 7.7141293332*10**-1*prs + 7.6700274216E+01
 
 prepbufr_dir = lambda date: f"../CPEX-CV/GDAS_R0_HALO_R1/{date:%Y%m%d}/"
 prepbufr_filenames = [
@@ -40,7 +45,7 @@ for date in pd.date_range(start_date, end_date, freq=frequency):
             shell=True)
 
 filenames = glob.glob(f"/tmp/{dropsonde_prefix}")
-z_keep = extra.vertical_levels()
+z_keep = extra.vertical_levels(num_levels)
 
 for date in pd.date_range(start_date, end_date, freq=frequency):
     print("creating prepbufr for", date)
