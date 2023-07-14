@@ -2,7 +2,6 @@ import sys
 sys.path.insert(1, "../plotters_cv/")
 from datetime import datetime, timedelta
 import glob
-import helpers
 import pandas as pd
 import numpy as np
 from python_imports import extra
@@ -41,7 +40,7 @@ for date in pd.date_range(start_date, end_date, freq=frequency):
             shell=True)
 
 filenames = glob.glob(f"/tmp/{dropsonde_prefix}")
-z_keep = helpers.vertical_levels()
+z_keep = extra.vertical_levels()
 
 for date in pd.date_range(start_date, end_date, freq=frequency):
     print("creating prepbufr for", date)
