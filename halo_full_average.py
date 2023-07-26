@@ -13,6 +13,9 @@ parser.add_argument(
     "--dx", default=12000, type=int,
     help="Horizontal average distance in meters.")
 parser.add_argument(
+    "--vertical_levels", default=45, type=int,
+    help="Number of vertical levels.")
+parser.add_argument(
     "--trim_plot", default=False, type=bool,
     help="Trim data to date range.")
 parser.add_argument(
@@ -42,7 +45,8 @@ else:
     ds_halo = extra.get_halo_data(filename=f"/tmp/{args.filename}")
 
 ds_halo_avg = extra.full_average_halo(
-    ds_halo, args.dx, extra.vertical_levels(), ["h2o_mmr_v", "532_ext"])
+    ds_halo, args.dx, extra.vertical_levels(args.vertical_levels),
+    ["h2o_mmr_v", "532_ext"])
 
 Path(args.output_dir).mkdir(parents=True, exist_ok=True)
 ds_halo_avg.to_netcdf(

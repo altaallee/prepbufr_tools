@@ -13,6 +13,9 @@ parser.add_argument(
     "--dx", default=12000, type=int,
     help="Horizontal average distance in meters.")
 parser.add_argument(
+    "--vertical_levels", default=45, type=int,
+    help="Number of vertical levels.")
+parser.add_argument(
     "--trim_plot", default=False, type=bool,
     help="Trim data to date range.")
 parser.add_argument(
@@ -43,7 +46,7 @@ else:
     ds_dawn = extra.get_dawn_data(filename=f"/tmp/{args.filename}")
 
 ds_dawn_avg = extra.full_average_dawn(
-    ds_dawn, args.dx, extra.vertical_levels(),
+    ds_dawn, args.dx, extra.vertical_levels(args.vertical_levels),
     ["Wind_Speed", "U_comp", "V_comp"],
     along_track_vars=["AC_Roll", "AC_Pitch", "AC_Altitude"])
 
