@@ -195,6 +195,10 @@ for dawn_filename in config.dawn_filenames:
                 "ZOB": ds_point["altitude"],
                 "UOB": ds_point["U_comp"],
                 "VOB": ds_point["V_comp"]})
+            if "UOB" in config.deny_variables:
+                df = df.assign(UOB=np.nan)
+            if "VOB" in config.deny_variables:
+                df = df.assign(VOB=np.nan)
             df.dropna(subset=["UOB", "VOB"], how="all", inplace=True)
             df.fillna(10e10, inplace=True)
     

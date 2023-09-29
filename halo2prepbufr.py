@@ -152,6 +152,8 @@ for halo_filename in config.halo_filenames:
                 "POB": ds_point["prs"],
                 "QOB": ds_point["Specific_Humidity"],
                 "ZOB": ds_point["altitude"]})
+            if "QOB" in config.deny_variables:
+                df = df.assign(QOB=np.nan)
             df.dropna(subset=["QOB"], inplace=True)
             df.fillna(10e10, inplace=True)
     
