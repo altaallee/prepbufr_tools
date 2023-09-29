@@ -54,19 +54,17 @@ for halo_filename in config.halo_filenames:
                  (current_time < datetime(2022, 9, 9, 13, 2))) |
                 ((current_time > datetime(2022, 9, 9, 13, 6)) &
                  (current_time < datetime(2022, 9, 9, 13, 7))) |
-                ((current_time > datetime(2022, 9, 9, 14, 12)) &
+                ((current_time > datetime(2022, 9, 9, 14, 14)) &
                  (current_time < datetime(2022, 9, 9, 14, 16))) |
                 # RF03 intersections
                 ((current_time > datetime(2022, 9, 9, 17, 43)) &
-                 (current_time < datetime(2022, 9, 9, 17, 45, 15))) |
+                 (current_time < datetime(2022, 9, 9, 17, 45))) |
                 ((current_time > datetime(2022, 9, 9, 19, 12)) &
                  (current_time < datetime(2022, 9, 9, 19, 15, 30))) |
-                ((current_time > datetime(2022, 9, 9, 19, 19)) &
+                ((current_time > datetime(2022, 9, 9, 19, 20)) &
                  (current_time < datetime(2022, 9, 9, 19, 21, 30))) |
 
                 # RF04 spiral
-                ((current_time > datetime(2022, 9, 10, 16, 5, 30)) &
-                 (current_time < datetime(2022, 9, 10, 16, 6, 30))) |
                 ((current_time > datetime(2022, 9, 10, 16, 15)) &
                  (current_time < datetime(2022, 9, 10, 16, 19))) |
                 # RF04 figure 4
