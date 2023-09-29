@@ -3,8 +3,8 @@ import pandas as pd
 from pathlib import Path
 import subprocess
 
-start_date = datetime(2022, 9, 4, 0)
-end_date = datetime(2022, 9, 30, 18)
+start_date = datetime(2022, 9, 22, 0)
+end_date = datetime(2022, 9, 22, 18)
 freq = timedelta(hours=6)
 
 gdas_dir = lambda date: f"../CPEX-CV/GDAS_org/{date:%Y%m%d}/"
@@ -47,7 +47,7 @@ for date in pd.date_range(start_date, end_date, freq=freq):
     subprocess.run(
         f"cp {gdas_dir(date)}/{prepbufr_filename(date)} {destination_dir(date)}/{dawn_hamsr_sonde_filename(date)}",
         shell=True)
-     GDAS + DAWN + HALO + SONDE
+    # GDAS + DAWN + HALO + SONDE
     subprocess.run(
         f"cp {gdas_dir(date)}/{prepbufr_filename(date)} {destination_dir(date)}/{dawn_halo_sonde_filename(date)}",
         shell=True)
