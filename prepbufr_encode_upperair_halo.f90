@@ -79,7 +79,8 @@ program prepbufr_encode_upperair
    c_sid = '12345'; hdr(1) = rstation_id
    hdr(2) = longitude; hdr(3) = latitude; hdr(4) = time; hdr(6) = 0.0
 
-   hdr(5) = 132 ! report type: MASS Report - Flight-level reconnaissance and profile dropsonde
+   !hdr(5) = 132 ! report type: MASS Report - Flight-level reconnaissance and profile dropsonde
+   hdr(5) = 120 ! report type: MASS Report - Rawinsonde
    hdr(8) = 75.
    obs = 10.0e10; qcf = 10.0e10; oer = 10.0e10
 
