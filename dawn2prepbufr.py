@@ -223,4 +223,7 @@ for date in pd.date_range(config.start_date, config.end_date, freq="1d"):
     subprocess.run(
         f"mv /tmp/prepbufr_{date:%Y%m%d}/* {config.prepbufr_dir(date)}",
         shell=True)
+    subprocess.run(f"rm -rf /tmp/prepbufr_{date:%Y%m%d}", shell=True)
 subprocess.run("rm /tmp/dawn_processed.csv", shell=True)
+subprocess.run("rm -rf /tmp/lib", shell=True)
+subprocess.run("rm /tmp/prepbufr_encode_upperair_dawn.exe", shell=True)

@@ -245,7 +245,10 @@ subprocess.run(f"rm /tmp/{config.dropsonde_prefix}", shell=True)
 subprocess.run(f"rm /tmp/sonde*", shell=True)
 subprocess.run(f"rm /tmp/dropsonde_processed_mass.csv", shell=True)
 subprocess.run(f"rm /tmp/dropsonde_processed_wind.csv", shell=True)
+subprocess.run(f"rm /tmp/prepbufr_encode_upperair_dropsonde.exe", shell=True)
+subprocess.run(f"rm -rf /tmp/lib", shell=True)
 for date in pd.date_range(config.start_date, config.end_date, freq="1d"):
     subprocess.run(
         f"mv /tmp/prepbufr_{date:%Y%m%d}/* {config.prepbufr_dir(date)}",
         shell=True)
+    subprocess.run(f"rm -rf /tmp/prepbufr_{date:%Y%m%d}", shell=True)
