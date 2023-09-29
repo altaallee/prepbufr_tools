@@ -1,3 +1,4 @@
+import config
 import sys
 sys.path.insert(1, "../plotters_cv/")
 from datetime import datetime, timedelta
@@ -9,57 +10,31 @@ import subprocess
 from pathlib import Path
 
 
-start_date = datetime(2022, 9, 4, 0)
-end_date = datetime(2022, 9, 30, 18)
-frequency = timedelta(hours=6)
-
-prepbufr_dir = lambda date: f"../CPEX-CV/GDAS_R0_HALO_R1/{date:%Y%m%d}/"
-prepbufr_filenames = [
-    lambda date: f"gdas_dawn.t{date:%H}z.prepbufr.nr",
-    lambda date: f"gdas_dawn_dropsonde_halo.t{date:%H}z.prepbufr.nr",
-    lambda date: f"gdas_dawn_halo.t{date:%H}z.prepbufr.nr",
-    lambda date: f"dawn.t{date:%H}z.prepbufr.nr",
-]
-
-dawn_dir = "postprocessed_obs/CPEX-CV/DAWN/"
-dawn_filenames = [
-    "cpexcv-DAWN_DC8_20220906_R0.nc_full_averaged_12000.nc",
-    "cpexcv-DAWN_DC8_20220907_R0.nc_full_averaged_12000.nc",
-    "cpexcv-DAWN_DC8_20220909_R0.nc_full_averaged_12000.nc",
-    "cpexcv-DAWN_DC8_20220910_R0.nc_full_averaged_12000.nc",
-    "cpexcv-DAWN_DC8_20220914_R0.nc_full_averaged_12000.nc",
-    "cpexcv-DAWN_DC8_20220915_R0.nc_full_averaged_12000.nc",
-    "cpexcv-DAWN_DC8_20220916_R0.nc_full_averaged_12000.nc",
-    "cpexcv-DAWN_DC8_20220920_R0.nc_full_averaged_12000.nc",
-    "cpexcv-DAWN_DC8_20220922_R0.nc_full_averaged_12000.nc",
-    "cpexcv-DAWN_DC8_20220923_R0.nc_full_averaged_12000.nc",
-    "cpexcv-DAWN_DC8_20220926_R0.nc_full_averaged_12000.nc",
-    "cpexcv-DAWN_DC8_20220929_R0.nc_full_averaged_12000.nc",
-    "cpexcv-DAWN_DC8_20220930_R0.nc_full_averaged_12000.nc",
-]
-
 wrfinput_dir = "/nobackupp28/alee31/CPEX-CV/era5_wrfinput/"
 
 subprocess.run("cp prepbufr_encode_upperair_dawn.exe /tmp", shell=True)
 subprocess.run("cp -r lib /tmp", shell=True)
 
-for date in pd.date_range(start_date, end_date, freq=frequency):
+for date in pd.date_range(
+    config.start_date, config.end_date, freq=config.frequency):
     Path(f"/tmp/prepbufr_{date:%Y%m%d}/").mkdir(parents=True, exist_ok=True)
-    for prepbufr_filename in prepbufr_filenames:
+    for prepbufr_filename in config.dawn_prepbufr_filenames:
         subprocess.run(
-            f"cp {prepbufr_dir(date)}/{prepbufr_filename(date)} /tmp/prepbufr_{date:%Y%m%d}/",
+            f"cp {config.prepbufr_dir(date)}/{prepbufr_filename(date)} /tmp/prepbufr_{date:%Y%m%d}/",
             shell=True)
 
 previous_time = None
-for dawn_filename in dawn_filenames:
-    subprocess.run(f"cp {dawn_dir}/{dawn_filename} /tmp", shell=True)
+for dawn_filename in config.dawn_filenames:
+    subprocess.run(f"cp {config.dawn_data_dir}/{dawn_filename} /tmp", shell=True)
     ds = xr.load_dataset(f"/tmp/{dawn_filename}")
+    ds = ds.sel({"time": ds["time"][::config.skip]})
 
-    for date in pd.date_range(start_date, end_date, freq=frequency):
+    for date in pd.date_range(
+        config.start_date, config.end_date, freq=config.frequency):
         print("creating prepbufr for", date)
 
-        start_window = date - frequency / 2
-        end_window = date + frequency / 2
+        start_window = date - config.frequency / 2
+        end_window = date + config.frequency / 2
         print("searching for DAWN data between", start_window, end_window)
 
         ds_segment = ds.sel(
@@ -133,9 +108,9 @@ for dawn_filename in dawn_filenames:
                     "/tmp/dawn_processed.csv", index=False,
                     columns=["POB", "ZOB", "UOB", "VOB"], header=False)
 
-                for prepbufr_filename in prepbufr_filenames:
+                for prepbufr_filename in config.dawn_prepbufr_filenames:
                     print("adding data to", prepbufr_filename(date))
-                    Path(prepbufr_dir(date)).mkdir(parents=True, exist_ok=True)
+                    Path(config.prepbufr_dir(date)).mkdir(parents=True, exist_ok=True)
                     subprocess.run(
                         ["/tmp/prepbufr_encode_upperair_dawn.exe",
                         f"/tmp/prepbufr_{date:%Y%m%d}/{prepbufr_filename(date)}",
@@ -148,7 +123,8 @@ for dawn_filename in dawn_filenames:
 if previous_time != None:
     subprocess.run(
         f"rm /tmp/wrfinput_d02_{previous_time:%Y-%m-%d_%H:00:00}", shell=True)
-for date in pd.date_range(start_date, end_date, freq="1d"):
+for date in pd.date_range(config.start_date, config.end_date, freq="1d"):
     subprocess.run(
-        f"mv /tmp/prepbufr_{date:%Y%m%d}/* {prepbufr_dir(date)}", shell=True)
+        f"mv /tmp/prepbufr_{date:%Y%m%d}/* {config.prepbufr_dir(date)}",
+        shell=True)
 subprocess.run("rm /tmp/dawn_processed.csv", shell=True)

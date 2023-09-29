@@ -1,3 +1,4 @@
+import config
 import sys
 sys.path.insert(1, "../plotters_cv/")
 from datetime import datetime, timedelta
@@ -11,46 +12,27 @@ from pathlib import Path
 import subprocess
 
 
-num_levels = 60
-
-start_date = datetime(2022, 9, 4, 0)
-end_date = datetime(2022, 9, 30, 18)
-frequency = timedelta(hours=6)
-
-if num_levels == 60:
-    prs_condition = lambda prs: -9 * 10**-5 * prs ** 2 + 0.1125 * prs - 16
-elif num_levels == 45
-    prs_condition = lambda prs: 1.1772615755*10**-15*prs**6 - 5.6433647319*10**-12*prs**5 + 9.8569456543*10**-9*prs**4 - 8.3496759069*10**-6*prs**3 + 3.6593810943*10**-3*prs**2 - 7.7141293332*10**-1*prs + 7.6700274216E+01
-
-prepbufr_dir = lambda date: f"../CPEX-CV/GDAS_R0_HALO_R1/{date:%Y%m%d}/"
-prepbufr_filenames = [
-    lambda date: f"gdas_dropsonde.t{date:%H}z.prepbufr.nr",
-    lambda date: f"gdas_dawn_dropsonde_halo.t{date:%H}z.prepbufr.nr",
-    lambda date: f"dropsonde.t{date:%H}z.prepbufr.nr",
-]
-
-dropsonde_dir = "../CPEX-CV/data_R0/dropsonde/"
-dropsonde_prefix = "CPEX_AVAPS_RD41_v1_2022*"
-decoded_gdas_dropsonde_dir = "decoded_gdas_dropsonde_text"
-
-subprocess.run(f"cp {dropsonde_dir}/{dropsonde_prefix} /tmp", shell=True)
+subprocess.run(
+    f"cp {config.dropsonde_data_dir}/{config.dropsonde_prefix} /tmp", shell=True)
 subprocess.run("cp prepbufr_encode_upperair_dropsonde.exe /tmp", shell=True)
 subprocess.run("cp -r lib /tmp", shell=True)
-subprocess.run(f"cp {decoded_gdas_dropsonde_dir}/* /tmp", shell=True)
-for date in pd.date_range(start_date, end_date, freq=frequency):
+subprocess.run(f"cp {config.decoded_gdas_dropsonde_dir}/* /tmp", shell=True)
+for date in pd.date_range(
+    config.start_date, config.end_date, freq=config.frequency):
     Path(f"/tmp/prepbufr_{date:%Y%m%d}/").mkdir(parents=True, exist_ok=True)
-    for prepbufr_filename in prepbufr_filenames:
+    for prepbufr_filename in config.dropsonde_prepbufr_filenames:
         subprocess.run(
-            f"cp {prepbufr_dir(date)}/{prepbufr_filename(date)} /tmp/prepbufr_{date:%Y%m%d}/",
+            f"cp {config.prepbufr_dir(date)}/{prepbufr_filename(date)} /tmp/prepbufr_{date:%Y%m%d}/",
             shell=True)
 
-filenames = glob.glob(f"/tmp/{dropsonde_prefix}")
-z_keep = extra.vertical_levels(num_levels)
+filenames = glob.glob(f"/tmp/{config.dropsonde_prefix}")
+z_keep = extra.vertical_levels(config.num_levels)
 
-for date in pd.date_range(start_date, end_date, freq=frequency):
+for date in pd.date_range(
+    config.start_date, config.end_date, freq=config.frequency):
     print("creating prepbufr for", date)
-    start_window = date - frequency / 2
-    end_window = date + frequency / 2
+    start_window = date - config.frequency / 2
+    end_window = date + config.frequency / 2
     print("searching for dropsondes between", start_window, end_window)
 
     for filename in sorted(filenames):
@@ -219,9 +201,10 @@ for date in pd.date_range(start_date, end_date, freq=frequency):
             if (len(POBmass) or len(POBwind)):
                 print(len(POBmass), len(POBwind))
 
-                for prepbufr_filename in prepbufr_filenames:
+                for prepbufr_filename in config.dropsonde_prepbufr_filenames:
                     print("adding data to", prepbufr_filename(date))
-                    Path(prepbufr_dir(date)).mkdir(parents=True, exist_ok=True)
+                    Path(config.prepbufr_dir(date)).mkdir(
+                        parents=True, exist_ok=True)
                     subprocess.run(
                         ["/tmp/prepbufr_encode_upperair_dropsonde.exe",
                         f"/tmp/prepbufr_{cycle:%Y%m%d}/{prepbufr_filename(cycle)}",
@@ -230,10 +213,11 @@ for date in pd.date_range(start_date, end_date, freq=frequency):
                         "/tmp/dropsonde_processed_wind.csv", str(len(POBmass)),
                         str(len(POBwind))])
 
-subprocess.run(f"rm /tmp/{dropsonde_prefix}", shell=True)
+subprocess.run(f"rm /tmp/{config.dropsonde_prefix}", shell=True)
 subprocess.run(f"rm /tmp/sonde*", shell=True)
 subprocess.run(f"rm /tmp/dropsonde_processed_mass.csv", shell=True)
 subprocess.run(f"rm /tmp/dropsonde_processed_wind.csv", shell=True)
-for date in pd.date_range(start_date, end_date, freq="1d"):
+for date in pd.date_range(config.start_date, config.end_date, freq="1d"):
     subprocess.run(
-        f"mv /tmp/prepbufr_{date:%Y%m%d}/* {prepbufr_dir(date)}", shell=True)
+        f"mv /tmp/prepbufr_{date:%Y%m%d}/* {config.prepbufr_dir(date)}",
+        shell=True)

@@ -1,3 +1,4 @@
+import config
 import sys
 sys.path.insert(1, "../plotters_cv/")
 from datetime import datetime, timedelta
@@ -11,62 +12,34 @@ from pathlib import Path
 import subprocess
 
 
-start_date = datetime(2022, 9, 4, 0)
-end_date = datetime(2022, 9, 30, 18)
-frequency = timedelta(hours=6)
-
-prepbufr_dir = lambda date: f"../CPEX-CV/GDAS_R0_HALO_R1/{date:%Y%m%d}/"
-prepbufr_filenames = [
-    lambda date: f"gdas_halo.t{date:%H}z.prepbufr.nr",
-    lambda date: f"gdas_dawn_dropsonde_halo.t{date:%H}z.prepbufr.nr",
-    lambda date: f"gdas_dawn_halo.t{date:%H}z.prepbufr.nr",
-    lambda date: f"halo.t{date:%H}z.prepbufr.nr",
-]
-
-halo_dir = "postprocessed_obs/CPEX-CV/HALO/"
-halo_filenames = [
-    "CPEXCV-HALO_DC8_20220903_R1.h5_full_averaged_12000.nc",
-    "CPEXCV-HALO_DC8_20220906_R1.h5_full_averaged_12000.nc",
-    "CPEXCV-HALO_DC8_20220907_R1.h5_full_averaged_12000.nc",
-    "CPEXCV-HALO_DC8_20220909_R1.h5_full_averaged_12000.nc",
-    "CPEXCV-HALO_DC8_20220910_R1.h5_full_averaged_12000.nc",
-    "CPEXCV-HALO_DC8_20220914_R1.h5_full_averaged_12000.nc",
-    "CPEXCV-HALO_DC8_20220915_R1.h5_full_averaged_12000.nc",
-    "CPEXCV-HALO_DC8_20220916_R1.h5_full_averaged_12000.nc",
-    "CPEXCV-HALO_DC8_20220920_R1.h5_full_averaged_12000.nc",
-    "CPEXCV-HALO_DC8_20220922_R1.h5_full_averaged_12000.nc",
-    "CPEXCV-HALO_DC8_20220923_R1.h5_full_averaged_12000.nc",
-    "CPEXCV-HALO_DC8_20220926_R1.h5_full_averaged_12000.nc",
-    "CPEXCV-HALO_DC8_20220929_R1.h5_full_averaged_12000.nc",
-    "CPEXCV-HALO_DC8_20220930_R1.h5_full_averaged_12000.nc",
-]
-
 wrfinput_dir = "/nobackupp28/alee31/CPEX-CV/era5_wrfinput/"
 
 subprocess.run("cp prepbufr_encode_upperair_halo.exe /tmp", shell=True)
 subprocess.run("cp -r lib /tmp", shell=True)
 
-for date in pd.date_range(start_date, end_date, freq=frequency):
+for date in pd.date_range(
+    config.start_date, config.end_date, freq=config.frequency):
     Path(f"/tmp/prepbufr_{date:%Y%m%d}/").mkdir(parents=True, exist_ok=True)
-    for prepbufr_filename in prepbufr_filenames:
+    for prepbufr_filename in config.halo_prepbufr_filenames:
         subprocess.run(
-            f"cp {prepbufr_dir(date)}/{prepbufr_filename(date)} /tmp/prepbufr_{date:%Y%m%d}/",
+            f"cp {config.prepbufr_dir(date)}/{prepbufr_filename(date)} /tmp/prepbufr_{date:%Y%m%d}/",
             shell=True)
 
 previous_time = None
-for halo_filename in halo_filenames:
-    subprocess.run(f"cp {halo_dir}/{halo_filename} /tmp", shell=True)
+for halo_filename in config.halo_filenames:
+    subprocess.run(f"cp {config.halo_data_dir}/{halo_filename} /tmp", shell=True)
     ds = xr.load_dataset(f"/tmp/{halo_filename}")
+    ds = ds.sel({"time": ds["time"][::config.skip]})
 
     ds["Specific_Humidity"] = mpcalc.specific_humidity_from_mixing_ratio(
         ds["h2o_mmr_v"] * units("gram / kilogram")).metpy.convert_units("milligrams / kilogram")
 
-    # ds["datetime"] = xr.DataArray([date + timedelta(days=1) for date in pd.to_datetime(ds["datetime"])], coords={"x": ds.x})
-    for date in pd.date_range(start_date, end_date, freq=frequency):
+    for date in pd.date_range(
+        config.start_date, config.end_date, freq=config.frequency):
         print("creating prepbufr for", date)
 
-        start_window = date - frequency / 2
-        end_window = date + frequency / 2
+        start_window = date - config.frequency / 2
+        end_window = date + config.frequency / 2
         print("searching for HALO data between", start_window, end_window)
 
         ds_segment = ds.sel(
@@ -210,9 +183,10 @@ for halo_filename in halo_filenames:
                 df.to_csv("/tmp/halo_processed.csv", index=False,
                     columns=["POB", "QOB", "ZOB"], header=False)
 
-                for prepbufr_filename in prepbufr_filenames:
+                for prepbufr_filename in config.halo_prepbufr_filenames:
                     print("adding data to", prepbufr_filename(date))
-                    Path(prepbufr_dir(date)).mkdir(parents=True, exist_ok=True)
+                    Path(config.prepbufr_dir(date)).mkdir(
+                        parents=True, exist_ok=True)
                     subprocess.run(
                         ["/tmp/prepbufr_encode_upperair_halo.exe",
                         f"/tmp/prepbufr_{date:%Y%m%d}/{prepbufr_filename(date)}",
@@ -224,7 +198,8 @@ for halo_filename in halo_filenames:
 if previous_time != None:
     subprocess.run(
         f"rm /tmp/wrfinput_d02_{previous_time:%Y-%m-%d_%H:00:00}", shell=True)
-for date in pd.date_range(start_date, end_date, freq="1d"):
+for date in pd.date_range(config.start_date, config.end_date, freq="1d"):
     subprocess.run(
-        f"mv /tmp/prepbufr_{date:%Y%m%d}/* {prepbufr_dir(date)}", shell=True)
+        f"mv /tmp/prepbufr_{date:%Y%m%d}/* {config.prepbufr_dir(date)}",
+        shell=True)
 subprocess.run("rm /tmp/halo_processed.csv", shell=True)
