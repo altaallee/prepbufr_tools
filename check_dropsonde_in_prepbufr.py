@@ -23,9 +23,10 @@ for date in pd.date_range(start_date, end_date, freq=freq):
     end_window = date + freq / 2
     
     for filename in sorted(filenames):
-        df, launch_time = extra.get_dropsonde_data(filename)
+        df, launch_time = extra.get_dropsonde_data(filename, subset=[])
 
         if (launch_time > start_window) & (launch_time < end_window):
+            print(filename)
             lon = round(df["reference_lon"][0] + 360, 1)
             lat = round(df["reference_lat"][0], 1)
             reference_time = df["reference_time"][0]
@@ -38,7 +39,7 @@ for date in pd.date_range(start_date, end_date, freq=freq):
                     lat, "dtime", dtime)
             elif len(match_mass) == 0:
                 print(
-                    "Failed to find sonde for", reference_time, "lon", lon,
+                    "Failed to find mass sonde for", reference_time, "lon", lon,
                     "lat", lat)
             else:
                 print(
@@ -54,7 +55,7 @@ for date in pd.date_range(start_date, end_date, freq=freq):
                     lat, "dtime", dtime)
             elif len(match_wind) == 0:
                 print(
-                    "Failed to find sonde for", reference_time, "lon", lon,
+                    "Failed to find wind sonde for", reference_time, "lon", lon,
                     "lat", lat)
             else:
                 print(
