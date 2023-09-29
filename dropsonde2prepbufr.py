@@ -28,6 +28,15 @@ for date in pd.date_range(
 filenames = glob.glob(f"/tmp/{config.dropsonde_prefix}")
 z_keep = extra.vertical_levels(config.num_levels)
 
+if config.num_levels == 60:
+    prs_condition = lambda prs: -9 * 10**-5 * prs ** 2 + 0.1125 * prs - 16
+elif config.num_levels == 45:
+    prs_condition = lambda prs: 1.1772615755*10**-15*prs**6 - 5.6433647319*10**-12*prs**5 + 9.8569456543*10**-9*prs**4 - 8.3496759069*10**-6*prs**3 + 3.6593810943*10**-3*prs**2 - 7.7141293332*10**-1*prs + 7.6700274216E+01
+elif config.num_levels == "model":
+    df = pd.read_csv("sounding_model_levels.csv")
+    p = np.polyfit(df["pres_avg"], df["pres_diff"], 5)
+    prs_condition = lambda prs: np.poly1d(p)(prs)
+
 for date in pd.date_range(
     config.start_date, config.end_date, freq=config.frequency):
     print("creating prepbufr for", date)
@@ -188,18 +197,36 @@ for date in pd.date_range(
                         VOB.append(averages[3].to(units("meter / second")).m)
 
             df_averaged_mass = pd.DataFrame({
-                "POB": POBmass, "QOB": QOB, "TOB": TOB, "ZOB": ZOBmass}).sort_values(
-                    "POB", ascending=False)
+                "POB": POBmass,
+                "QOB": QOB,
+                "TOB": TOB,
+                "ZOB": ZOBmass}).sort_values("POB", ascending=False)
+            if "QOB" in config.deny_variables:
+                df_averaged_mass = df_averaged_mass.assign(QOB=np.nan)
+            if "TOB" in config.deny_variables:
+                df_averaged_mass = df_averaged_mass.assign(TOB=np.nan)
+            df_averaged_mass.dropna(
+                subset=["QOB", "TOB"], how="all", inplace=True)
+            df_averaged_mass.fillna(10e10, inplace=True)
             df_averaged_mass.to_csv(
                 "/tmp/dropsonde_processed_mass.csv", index=False, header=False)
             df_averaged_wind = pd.DataFrame({
-                "POB": POBwind, "ZOB": ZOBwind, "UOB": UOB, "VOB": VOB}).sort_values(
-                    "POB", ascending=False)
+                "POB": POBwind,
+                "ZOB": ZOBwind,
+                "UOB": UOB,
+                "VOB": VOB}).sort_values("POB", ascending=False)
+            if "UOB" in config.deny_variables:
+                df_averaged_wind = df_averaged_wind.assign(UOB=np.nan)
+            if "VOB" in config.deny_variables:
+                df_averaged_wind = df_averaged_wind.assign(VOB=np.nan)
+            df_averaged_wind.dropna(
+                subset=["UOB", "VOB"], how="all", inplace=True)
+            df_averaged_wind.fillna(10e10, inplace=True)
             df_averaged_wind.to_csv(
                 "/tmp/dropsonde_processed_wind.csv", index=False, header=False)
 
-            if (len(POBmass) or len(POBwind)):
-                print(len(POBmass), len(POBwind))
+            if df_averaged_mass.size or df_averaged_wind.size:
+                print(df_averaged_mass.size, df_averaged_wind.size)
 
                 for prepbufr_filename in config.dropsonde_prepbufr_filenames:
                     print("adding data to", prepbufr_filename(date))
@@ -210,8 +237,9 @@ for date in pd.date_range(
                         f"/tmp/prepbufr_{cycle:%Y%m%d}/{prepbufr_filename(cycle)}",
                         f"{cycle:%Y%m%d%H}", f"{lon}", f"{lat}", f"{dt}",
                         "/tmp/dropsonde_processed_mass.csv",
-                        "/tmp/dropsonde_processed_wind.csv", str(len(POBmass)),
-                        str(len(POBwind))])
+                        "/tmp/dropsonde_processed_wind.csv",
+                        str(df_averaged_mass.size),
+                        str(df_averaged_wind.size)])
 
 subprocess.run(f"rm /tmp/{config.dropsonde_prefix}", shell=True)
 subprocess.run(f"rm /tmp/sonde*", shell=True)
