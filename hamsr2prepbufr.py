@@ -214,6 +214,7 @@ for hamsr_filename in config.hamsr_filenames:
             df = df[df["ZOB"] > 1000]
             if "QOB" in config.deny_variables:
                 df = df.assign(QOB=np.nan)
+            df = df.assign(QOB=np.nan)
             if "TOB" in config.deny_variables:
                 df = df.assign(TOB=np.nan)
             df.dropna(subset=["QOB", "TOB"], how="all", inplace=True)
