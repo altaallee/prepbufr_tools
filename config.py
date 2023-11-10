@@ -7,6 +7,7 @@ frequency = timedelta(hours=6)
 
 skip = 1
 num_levels = "model"
+num_levels_dropsonde = 45
 
 deny_variables = [
     #"QOB",

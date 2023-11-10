@@ -28,11 +28,11 @@ for date in pd.date_range(
 filenames = glob.glob(f"/tmp/{config.dropsonde_prefix}")
 z_keep = extra.vertical_levels(config.num_levels)
 
-if config.num_levels == 60:
+if config.num_levels_dropsonde == 60:
     prs_condition = lambda prs: -9 * 10**-5 * prs ** 2 + 0.1125 * prs - 16
-elif config.num_levels == 45:
+elif config.num_levels_dropsonde == 45:
     prs_condition = lambda prs: 1.1772615755*10**-15*prs**6 - 5.6433647319*10**-12*prs**5 + 9.8569456543*10**-9*prs**4 - 8.3496759069*10**-6*prs**3 + 3.6593810943*10**-3*prs**2 - 7.7141293332*10**-1*prs + 7.6700274216E+01
-elif config.num_levels == "model":
+elif config.num_levels_dropsonde == "model":
     df = pd.read_csv("sounding_model_levels.csv")
     p = np.polyfit(df["pres_avg"], df["pres_diff"], 5)
     prs_condition = lambda prs: np.poly1d(p)(prs)
