@@ -26,7 +26,6 @@ for date in pd.date_range(
             shell=True)
 
 filenames = glob.glob(f"/tmp/{config.dropsonde_prefix}")
-z_keep = extra.vertical_levels(config.num_levels)
 
 if config.num_levels_dropsonde == 60:
     prs_condition = lambda prs: -9 * 10**-5 * prs ** 2 + 0.1125 * prs - 16
@@ -117,6 +116,11 @@ for date in pd.date_range(
                 ZOBwind = []
                 UOB = []
                 VOB = []
+
+            if mass_exist or wind_exist:
+                z_keep = extra.vertical_levels("model")
+            else:
+                z_keep = extra.vertical_levels(45)
 
             for dz, z in zip((z_keep[1:] - z_keep[:-1]) * units("meter"), z_keep[1:] * units("meter")):
                 if (len(df_mass["pres"]) and (z > min_z_mass) and
