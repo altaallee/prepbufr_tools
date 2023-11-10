@@ -52,7 +52,7 @@ program prepbufr_decode_all
          call ufbint(unit_in, qcf, mxmn, mxlv, iret, qcstr)
          rstation_id = hdr(1)
          write (11, *)
-         write (11, '(2I10,a14,8f14.1)') ntb, iret, c_sid, (hdr(i), i=2, 8)
+         write (11, '(a3,2I10,a14,8f15.1)') 'obs', ntb, iret, c_sid, (hdr(i), i=2, 8)
          do k = 1, iret
             write (11, '(i3,a10,9f15.1)') k, 'obs =', (obs(i, k), i=1, 9)
             write (11, '(i3,a10,9f15.1)') k, 'oer =', (oer(i, k), i=1, 7)
