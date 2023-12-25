@@ -90,8 +90,8 @@ program prepbufr_encode_upperair
       nlvl = nlvl + 1
       read (csv_line, *) obs(1, nlvl), obs(2, nlvl), obs(3, nlvl), obs(4, nlvl)
       obs(8, nlvl) = 4.
-      qcf(1, nlvl) = 1.; qcf(2, nlvl) = 1.; qcf(4, nlvl) = 1.
-      oer(1, nlvl) = 1.; oer(2, nlvl) = 1.
+      qcf(1, nlvl) = 1.; qcf(2, nlvl) = 1.; qcf(3, nlvl) = 1.; qcf(4, nlvl) = 1.
+      oer(1, nlvl) = 1.; oer(2, nlvl) = 1.; oer(3, nlvl) = 1.
    end do
 
    ! encode obs
