@@ -5,7 +5,7 @@ program prepbufr_decode_all
 !
 ! command line arguments
 ! 1: filename of prepbufr file
-! 2: filename of prepbufr file
+! 2: filename of out file
 !
    implicit none
 
